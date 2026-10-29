@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MÜREKKEP">
+<meta name="theme-color" content="#371b23">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<script src="config.js"></script>
+<title>MÜREKKEP</title>
+<style>
+:root{--m:#582a2a;--md:#371b23;--g:#c9a35f;--gs:#f6f0e4;--ink:#252936;--mu:#68707d;--fa:#a0a5ad;--ln:#e6e3de;--bg:#f7f6f3;--r:#b4232f;--rs:#fcebec;--o:#b55d0e;--os:#fdf1e3;--gr:#2e7d4f;--grs:#e7f3eb;--b:#2f5d8a;--bs:#eaf0f7;--p:#6b5b7b;--ps:#f0ecf3;--top:env(safe-area-inset-top);--bot:env(safe-area-inset-bottom)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--ink);font-size:15px;line-height:1.4}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:fixed;top:0;left:0;right:0;z-index:20;background:linear-gradient(#41202a,var(--md));color:#fff;padding:calc(var(--top) + 10px) 14px 10px;display:flex;align-items:center;gap:10px}
+header h1{font-size:17px;margin:0;flex:1;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header small{display:block;font-size:11px;color:var(--g);font-weight:500;letter-spacing:0}
+.hb{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:10px;padding:7px 11px;font-weight:600;font-size:14px}
+main{padding:calc(var(--top) + 66px) 12px calc(var(--bot) + 90px);max-width:760px;margin:0 auto}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid var(--ln);display:flex;padding:6px 4px calc(var(--bot) + 6px)}
+nav.tabs button{flex:1;background:none;border:0;padding:4px 0;font-size:10.5px;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600}
+nav.tabs button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.on{color:var(--m)}
+.fab{position:fixed;right:16px;bottom:calc(var(--bot) + 74px);z-index:21;width:54px;height:54px;border-radius:27px;border:0;background:var(--m);color:#fff;font-size:30px;line-height:54px;box-shadow:0 6px 18px rgba(55,27,35,.35)}
+h2{font-size:17px;color:var(--m);margin:18px 4px 8px;display:flex;justify-content:space-between;align-items:baseline}
+h2 small{color:var(--mu);font-weight:500;font-size:12px}
+h3{font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin:14px 4px 6px}
+.kp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.k{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:10px 12px}
+.k b{display:block;font-size:21px}.k span{font-size:12px;color:var(--mu)}
+.it{background:#fff;border:1px solid var(--ln);border-left:4px solid var(--fa);border-radius:13px;padding:10px 12px;margin:7px 0}
+.it:active{background:#faf8f5}
+.it.r{border-left-color:var(--r)}.it.o{border-left-color:var(--o)}.it.b{border-left-color:var(--b)}.it.p{border-left-color:var(--p)}.it.g{border-left-color:var(--gr)}.it.m{border-left-color:var(--m)}.it.done{opacity:.6}
+.tp{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:3px}
+.tg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:#eee;white-space:nowrap}
+.tg.r{background:var(--rs);color:var(--r)}.tg.o{background:var(--os);color:var(--o)}.tg.b{background:var(--bs);color:var(--b)}.tg.p{background:var(--ps);color:var(--p)}.tg.g{background:var(--grs);color:var(--gr)}.tg.m{background:#f5eceb;color:var(--m)}
+.dt{font-size:12px;color:var(--mu);font-weight:600;text-align:right}
+.mu{color:var(--mu);font-size:13px}.rt{color:var(--r);font-size:13px;font-weight:600}.ot{color:var(--o);font-size:13px;font-weight:600}.gt{color:var(--gr);font-weight:700}
+.ttl{font-weight:650}
+.empty{color:var(--mu);font-size:14px;padding:10px 4px}
+.search{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--ln);background:#fff;font-size:15px;margin:4px 0 6px}
+.seg{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;-webkit-overflow-scrolling:touch}
+.seg button{flex:0 0 auto;border:1px solid var(--ln);background:#fff;border-radius:18px;padding:7px 13px;font-size:13px;font-weight:600}
+.seg button.on{background:var(--m);border-color:var(--m);color:#fff}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+select.sel{padding:9px 10px;border-radius:11px;border:1px solid var(--ln);background:#fff;font-size:14px;width:100%}
+/* sayfa / form */
+.sheet{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--top) + 64px) 14px calc(var(--bot) + 30px);transform:translateX(100%);transition:transform .22s ease}
+.sheet.show{transform:none}
+.sheet .sh{position:fixed;top:0;left:0;right:0;z-index:41;background:linear-gradient(#41202a,var(--md));color:#fff;padding:calc(var(--top) + 10px) 10px 10px;display:flex;align-items:center;gap:8px}
+.sheet .sh h1{flex:1;font-size:16px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:12px 14px;margin:10px 0}
+label.f{display:block;font-size:12px;color:var(--mu);font-weight:650;margin:10px 0 4px}
+.in{width:100%;padding:11px 12px;border-radius:11px;border:1px solid #d9d5cf;background:#fff;font-size:16px}
+textarea.in{min-height:84px;resize:vertical}
+.chk{display:flex;gap:6px;flex-wrap:wrap}.chk button{border:1px solid var(--ln);background:#fff;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:600}
+.chk button.on{background:var(--m);border-color:var(--m);color:#fff}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:700;margin-top:12px;background:var(--m);color:#fff}
+.btn.sec{background:#fff;color:var(--ink);border:1px solid var(--ln)}.btn.dan{background:#fff;color:var(--r);border:1px solid #f0c8cb}.btn.gr{background:var(--gr)}
+.btn.sm{display:inline-block;width:auto;padding:7px 12px;font-size:13px;margin:0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}.kv span{color:var(--mu)}
+.err{color:var(--r);font-weight:600;font-size:14px;margin-top:10px;min-height:1px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bot) + 140px);z-index:60;background:#252936;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%}
+.toast.show{opacity:.95}
+.login{max-width:360px;margin:16vh auto 0;text-align:center}
+.login h1{color:var(--m);font-size:26px;margin:14px 0 2px}.login img{width:84px;border-radius:20px}
+.pin{font-size:26px;letter-spacing:8px;text-align:center}
+a.tel{color:var(--b);font-weight:700;text-decoration:none}
+.sub{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hide{display:none!important}
+.spin{text-align:center;color:var(--mu);padding:30px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+let D = null, tab = (function(){ try { return localStorage.getItem('mk_tab') || 'home'; } catch(e){ return 'home'; } })(), st = {jobSeg:'all', icraSeg:'alarm', icraSite:'', icraStage:'', q:{}, month:null, calSeg:'up'};
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const up = s => String(s || '').toLocaleUpperCase('tr-TR');
+const nf = new Intl.NumberFormat('tr-TR', {minimumFractionDigits:0, maximumFractionDigits:2});
+const money = c => nf.format((c || 0) / 100) + ' TL';
+const amt = c => c ? String((c / 100).toFixed(2)).replace('.', ',').replace(/,00$/, '') : '';
+const WD = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const MO = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const pd = s => { if (!s) return null; const p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); };
+const fd = s => { const d = pd(s); return d ? String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + d.getFullYear() : ''; };
+const iso = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const days = s => { const d = pd(s); return d ? Math.round((d - today()) / 864e5) : null; };
+const rel = s => { const n = days(s); return n == null ? '' : n === 0 ? 'bugün' : n === 1 ? 'yarın' : n === -1 ? 'dün' : n < 0 ? (-n) + ' gün geçti' : n + ' gün kaldı'; };
+const dayLab = s => { const d = pd(s); return d ? fd(s) + ' ' + WD[d.getDay()] + ' · ' + rel(s) : ''; };
+function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400); }
+/* ================== OneDrive bağlantısı (Microsoft hesabı, PKCE) ================== */
+const AUTH = 'https://login.microsoftonline.com/common/oauth2/v2.0';
+const SCOPES = 'offline_access Files.ReadWrite User.Read';
+const REDIRECT = location.origin + location.pathname;
+const LS = {get: k => { try { return localStorage.getItem(k); } catch(e){ return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch(e){} }, del: k => { try { localStorage.removeItem(k); } catch(e){} }};
+let CID = LS.get('mk_cid') || (window.MK_CLIENT_ID || ''), PATH = LS.get('mk_path') || '';
+let Q = JSON.parse(LS.get('mk_queue') || '[]'), R = {}, syncing = false;
+const saveQ = () => LS.set('mk_queue', JSON.stringify(Q));
+const b64url = buf => btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const rnd = n => { const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a).slice(0, n); };
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
+
+async function login(){
+  const v = rnd(64), st8 = rnd(16);
+  LS.set('mk_pkce', v); LS.set('mk_state', st8);
+  const ch = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)));
+  location.href = AUTH + '/authorize?client_id=' + encodeURIComponent(CID) + '&response_type=code&response_mode=query&redirect_uri=' + encodeURIComponent(REDIRECT) +
+    '&scope=' + encodeURIComponent(SCOPES) + '&code_challenge=' + ch + '&code_challenge_method=S256&state=' + st8 + '&prompt=select_account';
+}
+async function tokenReq(params){
+  const r = await fetch(AUTH + '/token', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams(Object.assign({client_id: CID, scope: SCOPES}, params))});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error_description || j.error || 'Giriş hatası');
+  LS.set('mk_at', j.access_token); LS.set('mk_exp', String(Date.now() + (j.expires_in - 120) * 1000));
+  if (j.refresh_token) LS.set('mk_rt', j.refresh_token);
+  return j.access_token;
+}
+async function handleRedirect(){
+  const u = new URL(location.href), code = u.searchParams.get('code'), err = u.searchParams.get('error_description');
+  if (!code && !err) return;
+  history.replaceState(null, '', REDIRECT);
+  if (err) { toast(err); return; }
+  if (u.searchParams.get('state') !== LS.get('mk_state')) { toast('Giriş doğrulanamadı, tekrar deneyin'); return; }
+  await tokenReq({grant_type: 'authorization_code', code: code, redirect_uri: REDIRECT, code_verifier: LS.get('mk_pkce') || ''});
+}
+async function token(){
+  const at = LS.get('mk_at'), exp = +(LS.get('mk_exp') || 0);
+  if (at && Date.now() < exp) return at;
+  const rt = LS.get('mk_rt');
+  if (rt) { try { return await tokenReq({grant_type: 'refresh_token', refresh_token: rt, redirect_uri: REDIRECT}); } catch(e){ LS.del('mk_rt'); } }
+  return null;
+}
+function logout(){ ['mk_at','mk_exp','mk_rt'].forEach(LS.del); D = null; loginView(); }
+const encPath = p => p.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+async function graph(path, opt){
+  const t = await token();
+  if (!t) { loginView(); throw new Error('Giriş gerekli'); }
+  opt = opt || {};
+  opt.headers = Object.assign({Authorization: 'Bearer ' + t}, opt.headers || {});
+  const r = await fetch('https://graph.microsoft.com/v1.0' + path, opt);
+  if (r.status === 401) { LS.del('mk_at'); LS.del('mk_exp'); }
+  return r;
+}
+async function readFile(rel){
+  let r;
+  try { r = await graph('/me/drive/root:/' + encPath(rel) + ':/content'); if (r.ok) return await r.text(); if (r.status === 404) return null; }
+  catch(e){ if (e.message === 'Giriş gerekli') throw e; }
+  const m = await graph('/me/drive/root:/' + encPath(rel) + '?$select=id,@microsoft.graph.downloadUrl');
+  if (m.status === 404) return null;
+  if (!m.ok) throw new Error('OneDrive okunamadı (' + m.status + ')');
+  const j = await m.json(), url = j['@microsoft.graph.downloadUrl'];
+  const r2 = await fetch(url);
+  if (!r2.ok) throw new Error('OneDrive dosyası indirilemedi');
+  return await r2.text();
+}
+async function findPath(){
+  const cands = [PATH, 'Desktop/KASA/TELEFON', 'Masaüstü/KASA/TELEFON', 'Desktop/MÜREKKEP SERVER/TELEFON', 'Masaüstü/MÜREKKEP SERVER/TELEFON', 'KASA/TELEFON'].filter(Boolean);
+  for (const c of cands) { const r = await graph('/me/drive/root:/' + encPath(c) + '/veri.json?$select=id'); if (r.ok) return c; }
+  const s = await graph("/me/drive/root/search(q='murekkep_server_telefon')?$select=name,parentReference");
+  if (s.ok) { const j = await s.json(); for (const it of j.value || []) { const p = (it.parentReference && it.parentReference.path || '').replace(/^\/drive\/root:\/?/, ''); if (p) return decodeURIComponent(p); } }
+  return null;
+}
+
+/* ================== veri ve işlem kuyruğu ================== */
+async function load(silent){
+  if (syncing) return; syncing = true;
+  try {
+    if (!PATH || !D) { const p = await findPath(); if (!p) throw new Error('OneDrive\'da MÜREKKEP verisi bulunamadı. Bilgisayarda programı bir kez açın (TELEFON klasörü oluşur) ve OneDrive eşitlemesini bekleyin; ya da Ayarlar\'dan klasör yolunu girin.'); PATH = p; LS.set('mk_path', p); }
+    const txt = await readFile(PATH + '/veri.json');
+    if (!txt) throw new Error('veri.json bulunamadı: ' + PATH);
+    const fresh = JSON.parse(txt);
+    try { const rt = await readFile(PATH + '/sonuclar.json'); R = {}; if (rt) for (const x of (JSON.parse(rt).results || [])) R[x.opId] = x; } catch(e){}
+    for (const q of Q) { const x = R[q.opId]; if (x) { q.done = true; q.ok = x.ok; q.msg = x.msg; } }
+    Q = Q.filter(q => !(q.done && q.ok)); saveQ();
+    D = fresh;
+    for (const q of Q) if (!q.done) applyLocal(q.op, q.body);
+    LS.set('mk_cache', txt);
+    await flush();
+    render();
+    if (!silent) toast('Güncellendi · bilgisayar verisi ' + D.now);
+  } catch(e) {
+    if (e.message === 'Giriş gerekli') return;
+    if (!D) { const c = LS.get('mk_cache'); if (c) { D = JSON.parse(c); for (const q of Q) if (!q.done) applyLocal(q.op, q.body); render(); toast('Çevrimdışı: son kayıtlı veri gösteriliyor'); } }
+    if (!D) $('#app').innerHTML = '<div class="login"><h1>Bağlanılamadı</h1><p class="mu">' + esc(e.message) + '</p><button class="btn" onclick="load()">Tekrar Dene</button><button class="btn sec" onclick="setupView()">Ayarlar</button></div>';
+    else toast(e.message);
+  } finally { syncing = false; }
+}
+async function flush(){
+  for (const q of Q) {
+    if (q.sent || q.done) continue;
+    try {
+      const r = await graph('/me/drive/root:/' + encPath(PATH + '/gelen_kutusu/' + q.opId + '.json') + ':/content', {method: 'PUT', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({opId: q.opId, op: q.op, body: q.body, label: q.label, at: q.at, device: 'iPhone'})});
+      if (r.ok) q.sent = true;
+    } catch(e){}
+  }
+  saveQ();
+}
+function opLabel(op, b){
+  const t = {'job/save':'İş / duruşma: ' + (b.title || ''), 'job/done':'Yapıldı / sonuç', 'job/delete':'İş silme', 'icra/save':'İcra: ' + (b.office || '') + ' ' + (b.no || ''), 'icra/tahsilat':'Tahsilat ' + (b.amount || '') + ' TL', 'icra/tahsilat/delete':'Tahsilat silme',
+    'icra/tahsilat/transfer':'Emanet aktarımı', 'icra/haciz':'Haciz: ' + (b.type || ''), 'icra/haciz/delete':'Haciz silme', 'icra/delete':'İcra dosyası silme', 'maas/save':'Maaş haczi: ' + (b.person || ''), 'client/save':'Müvekkil: ' + (b.name || ''),
+    'case/save':'Dosya: ' + (b.court || '') + ' ' + (b.esas || ''), 'move/save':(b.type || 'Hareket') + ' ' + (b.amount || '') + ' TL', 'move/delete':'Hareket silme', 'entry/save':(b.type || '') + ': ' + (b.category || '') + ' ' + (b.amount || '') + ' TL', 'entry/delete':'Kasa kaydı silme'}[op];
+  return t || op;
+}
+function validate(op, b){
+  if (op === 'job/save') { const ev = b.kind === 'TAKVIM' || b.kind === 'ARABULUCULUK'; if (!b.title) return ev ? 'Mahkeme / yer bilgisini girin' : 'Dosya / müvekkil bilgisini girin'; if (!ev && !(b.tags || []).length) return 'En az bir bölüm seçin'; if ((ev || (b.tags || []).includes('SURELI')) && !b.date) return ev ? 'Tarih girin' : 'Süreli işte son gün zorunlu'; }
+  if (op === 'job/done' && b.done) { const j = D.jobs.find(x => x.id === b.id); if (j && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && !b.note) return 'Not zorunlu'; }
+  if (op === 'icra/save') { if (!b.office || !b.no) return 'İcra dairesi ve dosya no zorunlu'; if (!b.site && !b.client) return 'Müvekkil zorunlu'; if (b.stage === 'İtirazla durdu (dava açılacak)' && !b.objServed) return 'İtirazın tebliğ tarihi zorunlu'; if (b.stage === 'Haricen tahsil (kapatılacak)' && (!b.feeAsked || !b.feeGot)) return 'Haricen tahsil: ücret soruları zorunlu'; if (b.stage === 'Haricen tahsil (kapatılacak)' && b.feeGot === 'E' && !(parseTL(b.feeGotAmount) > 0)) return 'Alınan ücret tutarını girin'; }
+  if ((op === 'icra/tahsilat' || op === 'move/save' || op === 'entry/save') && !(parseTL(b.amount) > 0)) return 'Tutar girin';
+  if (op === 'entry/save' && !b.category) return 'Kategori girin';
+  if (op === 'client/save' && !b.name) return 'Ad / ünvan zorunlu';
+  if (op === 'maas/save' && !b.person) return 'Personel adı zorunlu';
+  if (op === 'case/save' && !b.court && !b.esas && !b.invNo) return 'Mahkeme / esas no ya da soruşturma no girin';
+  return null;
+}
+function parseTL(s){ s = String(s || '').replace(/[\s₺]/g, '').replace(/TL$/i, ''); if (!s) return 0; if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); const v = parseFloat(s); return isNaN(v) ? 0 : Math.round(v * 100); }
+async function send(op, body){
+  body = Object.assign({}, body);
+  if (/\/save$/.test(op) && !body.id) body.id = uuid();
+  if (op === 'icra/tahsilat' || op === 'icra/haciz') body.newId = uuid();
+  const e = validate(op, body); if (e) throw new Error(e);
+  const q = {opId: Date.now().toString(36) + '-' + rnd(6), op: op, body: body, label: opLabel(op, body), at: new Date().toISOString(), sent: false};
+  Q.push(q); saveQ();
+  applyLocal(op, body);
+  flush().then(() => { if (tab === 'home') render(); });
+  return {sonuc: body.id || 'ok'};
+}
+async function api(path, body){
+  if (path === 'data') { await load(true); return D; }
+  if (path === 'deadline') return deadlineCalc(body.start, +body.n, body.unit, !!body.jh);
+  return send(path, body || {});
+}
+async function save(path, body, msg){
+  try { const r = await send(path, body); toast(msg || 'Kaydedildi · bilgisayara iletiliyor'); closeSheet(); render(); return r; }
+  catch(e){ const er = sheetStack.length ? sheetStack[sheetStack.length - 1].querySelector('.err') : null; if (er) er.textContent = e.message; toast(e.message); return null; }
+}
+async function refreshSheet(fn){ render(); if (sheetStack.length) { const s = sheetStack.pop(); s.remove(); } fn(); }
+
+/* ---- telefonda anında görünmesi için yerel uygulama (bilgisayar işleyince kesinleşir) */
+function siteNameOf(code){ const s = (D.sites || []).find(x => x.code === code); return s ? s.name : code; }
+function upsert(arr, obj){ const i = arr.findIndex(x => x.id === obj.id); if (i >= 0) arr[i] = Object.assign({}, arr[i], obj); else arr.push(obj); }
+function applyLocal(op, b){
+  if (!D) return;
+  try {
+    if (op === 'job/save') { const ev = b.kind === 'TAKVIM' || b.kind === 'ARABULUCULUK'; const tags = b.tags || []; const k = ev ? b.kind : tags[0];
+      upsert(D.jobs, {id: b.id, kind: k, tags: ev ? [] : tags.filter(t => t !== k), date: b.date || '', time: b.time || '', title: b.title, file: b.file || '', detail: b.detail || '', assignee: b.assignee || 'Faruk', done: (D.jobs.find(x => x.id === b.id) || {}).done || false, att: (D.jobs.find(x => x.id === b.id) || {}).att || 0}); }
+    else if (op === 'job/done') { const j = D.jobs.find(x => x.id === b.id); if (j) { j.done = !!b.done; j.doneNote = b.done ? b.note || '' : ''; j.doneReason = b.done ? (b.reason || (j.kind === 'TAKVIM' ? 'Duruşmaya girildi' : 'İşlem yapıldı')) : ''; j.doneAt = b.done ? new Date().toISOString().slice(0, 16) : ''; } }
+    else if (op === 'job/delete') D.jobs = D.jobs.filter(x => x.id !== b.id);
+    else if (op === 'icra/save') { const old = D.icra.find(x => x.id === b.id) || {alarms: [], haciz: [], tah: [], level: 'g'};
+      upsert(D.icra, Object.assign({}, old, b, {client: b.site ? siteNameOf(b.site) : b.client, clientRaw: b.site ? '' : b.client, amount: parseTL(b.amount), fee: parseTL(b.fee), feeGotAmount: parseTL(b.feeGotAmount), last: b.lastAction || old.last || '', alarms: old.alarms || [], haciz: old.haciz || [], tah: old.tah || [], level: old.level || 'g'})); }
+    else if (op === 'icra/tahsilat') { const f = D.icra.find(x => x.id === b.fileId); if (f && !f.tah.some(t => t.id === b.newId)) { const c = parseTL(b.amount); f.tah.push({id: b.newId, date: b.date, kind: b.kind, cents: c, note: b.note || '', transferred: ''}); if (b.kind === 'Asıl alacak') D.emanet += c; } }
+    else if (op === 'icra/tahsilat/delete') { for (const f of D.icra) { const t = f.tah.find(x => x.id === b.id); if (t) { if (t.kind === 'Asıl alacak' && !t.transferred) D.emanet -= t.cents; f.tah = f.tah.filter(x => x.id !== b.id); } } }
+    else if (op === 'icra/tahsilat/transfer') { for (const f of D.icra) { const t = f.tah.find(x => x.id === b.id); if (t) { if (t.kind === 'Asıl alacak') { if (!t.transferred && b.date) D.emanet -= t.cents; else if (t.transferred && !b.date) D.emanet += t.cents; } t.transferred = b.date || ''; if (b.date) f.alarms = f.alarms.filter(a => a.kind !== 'emanet'); } } }
+    else if (op === 'icra/haciz') { const f = D.icra.find(x => x.id === b.fileId); if (f && !f.haciz.some(h => h.id === b.newId)) f.haciz.push({id: b.newId, type: b.type, date: b.date || '', note: b.note || ''}); }
+    else if (op === 'icra/haciz/delete') { for (const f of D.icra) f.haciz = f.haciz.filter(x => x.id !== b.id); }
+    else if (op === 'icra/delete') D.icra = D.icra.filter(x => x.id !== b.id);
+    else if (op === 'maas/save') { const old = D.maas.find(x => x.id === b.id) || {}; upsert(D.maas, Object.assign({}, old, b, {siteName: siteNameOf(b.site), monthly: parseTL(b.monthly), sent: parseTL(b.sent), debt: parseTL(b.debt), status: old.status || '', alarm: old.alarm || ''})); }
+    else if (op === 'client/save') { const old = D.clients.find(x => x.id === b.id) || {balance: 0, feeGot: 0, agreed: 0, site: ''}; upsert(D.clients, Object.assign({}, old, b)); }
+    else if (op === 'case/save') upsert(D.cases, {id: b.id, clientId: b.clientId, kind: b.kind, court: b.court, esas: b.esas, invUnit: b.invUnit, invNo: b.invNo, subject: b.subject, status: b.closed ? 'Kapandı' : 'Devam ediyor', note: b.note, fee: parseTL(b.fee),
+      label: b.kind === 'Ceza' && !b.court ? (b.invUnit || 'Soruşturma') + ' ' + (b.invNo || '') + ' Soruşturma' : (b.court || '') + (b.esas ? '  ' + b.esas + ' E.' : '')});
+    else if (op === 'move/save') { upsert(D.moves, {id: b.id, clientId: b.clientId, caseId: b.caseId || '', date: b.date, type: b.type, desc: b.desc || '', cents: parseTL(b.amount), toIncome: !!b.toIncome}); recalcClient(b.clientId); }
+    else if (op === 'move/delete') { const m = D.moves.find(x => x.id === b.id); D.moves = D.moves.filter(x => x.id !== b.id); if (m) recalcClient(m.clientId); }
+    else if (op === 'entry/save') upsert(D.entries, {id: b.id, date: b.date, type: b.type, category: b.category, description: b.description || '', cents: parseTL(b.amount)});
+    else if (op === 'entry/delete') D.entries = D.entries.filter(x => x.id !== b.id);
+  } catch(e) { console.log(e); }
+}
+function recalcClient(cid){ const c = D.clients.find(x => x.id === cid); if (!c) return; let bal = 0, fee = 0; for (const m of D.moves.filter(x => x.clientId === cid)) { if (m.type === 'Avans Alındı') bal += m.cents; else if (m.type === 'Ücret Alındı') fee += m.cents; else bal -= m.cents; } c.balance = bal; c.feeGot = fee; }
+
+/* ---- süre hesabı (HMK 93 / 104) */
+const FIXED_H = ['01-01','04-23','05-01','05-19','07-15','08-30','10-29'];
+const REL_H = ['2026-03-20','2026-03-21','2026-03-22','2026-05-27','2026-05-28','2026-05-29','2026-05-30','2027-03-09','2027-03-10','2027-03-11','2027-05-16','2027-05-17','2027-05-18','2027-05-19'];
+const isHol = d => { const s = iso(d); return FIXED_H.includes(s.slice(5)) || REL_H.includes(s); };
+function deadlineCalc(start, n, unit, jh){
+  const why = []; const s = pd(start); if (!s || !(n >= 0)) throw new Error('Tarih ve süre girin');
+  const e = new Date(s);
+  if (unit === 'gün') e.setDate(e.getDate() + n); else if (unit === 'hafta') e.setDate(e.getDate() + 7 * n); else if (unit === 'ay') { const d0 = e.getDate(); e.setDate(1); e.setMonth(e.getMonth() + n); const last = new Date(e.getFullYear(), e.getMonth() + 1, 0).getDate(); e.setDate(Math.min(d0, last)); } else { const d0 = e.getDate(); e.setDate(1); e.setFullYear(e.getFullYear() + n); const last = new Date(e.getFullYear(), e.getMonth() + 1, 0).getDate(); e.setDate(Math.min(d0, last)); }
+  why.push(fd(start) + ' + ' + n + ' ' + unit + ' = ' + fd(iso(e)) + ' ' + WD[e.getDay()]);
+  let end = e;
+  if (jh) { const a = new Date(end.getFullYear(), 6, 20), b = new Date(end.getFullYear(), 7, 31); if (end >= a && end <= b) { end = new Date(end.getFullYear(), 8, 7); why.push('Adli tatile rastladı: tatilin bitiminden itibaren 1 hafta uzar (HMK 104) → ' + fd(iso(end))); } }
+  let e2 = new Date(end); while (e2.getDay() === 0 || e2.getDay() === 6 || isHol(e2)) e2.setDate(e2.getDate() + 1);
+  if (+e2 !== +end) why.push(fd(iso(end)) + ' hafta sonu / resmi tatil: ilk iş gününe uzar (HMK 93) → ' + fd(iso(e2)));
+  return {date: iso(e2), why: why};
+}
+
+/* ---- giriş / kurulum ekranları */
+function setupView(){
+  $('#app').innerHTML = '<div class="login"><img src="icon-180.png" alt=""><h1>Kurulum</h1><p class="mu">Microsoft\'taki uygulama kaydının <b>Uygulama (istemci) kimliği</b></p>' +
+    '<input id="cid" class="in" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value="' + esc(CID) + '" autocapitalize="off" autocorrect="off">' +
+    '<p class="mu" style="margin-top:14px">OneDrive klasör yolu (boş bırakın, otomatik bulunur)</p><input id="pth" class="in" placeholder="Desktop/KASA/TELEFON" value="' + esc(PATH) + '" autocapitalize="off">' +
+    '<button class="btn" id="sv">Kaydet</button>' + (LS.get('mk_rt') ? '<button class="btn sec" onclick="logout()">Microsoft hesabından çıkış</button>' : '') + '<p class="mu" style="margin-top:20px;font-size:12px">Yönlendirme adresi (uygulama kaydına bu girilir):<br><b>' + esc(REDIRECT) + '</b></p></div>';
+  $('#sv').onclick = () => { CID = $('#cid').value.trim(); PATH = $('#pth').value.trim().replace(/^\/+|\/+$/g, ''); LS.set('mk_cid', CID); LS.set('mk_path', PATH); D = null; start(); };
+}
+function loginView(){
+  if (!CID) return setupView();
+  $('#app').innerHTML = '<div class="login"><img src="icon-180.png" alt=""><h1>MÜREKKEP</h1><p class="mu">Hukuk Bürosu · OneDrive</p>' +
+    '<button class="btn" onclick="login()">Microsoft ile Giriş</button><button class="btn sec" onclick="setupView()">Ayarlar</button>' +
+    '<p class="mu" style="margin-top:22px;font-size:12px">Bilgisayardaki OneDrive ile aynı Microsoft hesabıyla giriş yapın. Verileriniz yalnızca OneDrive\'ınızdan okunur.</p></div>';
+}
+function pendingCard(){
+  const open = Q.filter(q => !q.done), bad = Q.filter(q => q.done && !q.ok);
+  if (!open.length && !bad.length) return '';
+  let h = '<div class="card" style="border-left:4px solid var(--o)"><div class="ttl">Bilgisayara iletilen işlemler</div><div class="mu">Bilgisayarda MÜREKKEP SERVER açıkken ~1 dakika içinde işlenir.</div>';
+  open.forEach(q => h += '<div class="mu" style="margin-top:6px">' + (q.sent ? '⏳ ' : '⚠︎ gönderilemedi, tekrar denenecek · ') + esc(q.label) + '</div>');
+  bad.forEach(q => h += '<div class="rt" style="margin-top:6px">✗ ' + esc(q.label) + ': ' + esc(q.msg) + ' <button class="btn sm sec" onclick="dropQ(\'' + q.opId + '\')">Kaldır</button></div>');
+  return h + '</div>';
+}
+function dropQ(id){ Q = Q.filter(q => q.opId !== id); saveQ(); load(true); }
+async function start(){
+  if (!CID) return setupView();
+  $('#app').innerHTML = '<div class="spin">Bağlanıyor…</div>';
+  try { await handleRedirect(); } catch(e){ toast(e.message); }
+  const t = await token();
+  if (!t) return loginView();
+  load(true);
+}
+
+/* ---------- iskelet */
+const ICONS = {home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>', jobs:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', icra:'<path d="M14 4l6 6-3 3-6-6zM11 7l-7 7 3 3 7-7M4 20h9"/>',
+  cli:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>', kasa:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h2M3 10h18"/>'};
+const TABS = [['home','Ana Sayfa'],['jobs','İşler'],['cal','Duruşma'],['icra','İcra'],['cli','Müvekkil'],['kasa','Kasa']];
+function render(){
+  if (!D) return;
+  const title = {home:'Ana Sayfa', jobs:'İşler', cal:'Duruşma / Arabuluculuk', icra:'İcra', cli:'Müvekkiller', kasa:'Kasa'}[tab];
+  const pq = Q.filter(q => !q.done).length;
+  let h = '<header><h1>' + title + '<small>bilgisayar verisi: ' + esc(D.now) + (pq ? ' · ' + pq + ' işlem bekliyor' : '') + '</small></h1><button class="hb" onclick="setupView()">⚙︎</button><button class="hb" onclick="load()">⟳</button></header><main id="main"></main>';
+  h += '<nav class="tabs">' + TABS.map(t => '<button class="' + (t[0] === tab ? 'on' : '') + '" onclick="go(\'' + t[0] + '\')"><svg viewBox="0 0 24 24">' + ICONS[t[0]] + '</svg>' + t[1] + '</button>').join('') + '</nav>';
+  h += '<button class="fab" onclick="fab()">+</button>';
+  const y = window.scrollY;
+  $('#app').innerHTML = h;
+  ({home:vHome, jobs:vJobs, cal:vCal, icra:vIcra, cli:vCli, kasa:vKasa})[tab]();
+  window.scrollTo(0, y);
+}
+function go(t){ tab = t; localStorage.setItem('mk_tab', t); render(); window.scrollTo(0,0); }
+function fab(){ ({home:() => jobForm(null,'NORMAL'), jobs:() => jobForm(null,'NORMAL'), cal:() => jobForm(null,'TAKVIM'), icra:() => st.icraSeg === 'maas' ? maasForm(null) : icraForm(null), cli:() => clientForm(null), kasa:() => entryForm(null)})[tab](); }
+function searchBox(key, ph){ return '<input class="search" placeholder="' + ph + '" value="' + esc(st.q[key] || '') + '" oninput="st.q.' + key + '=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{const p=this.selectionStart;render();const s=document.querySelector(\'.search\');s.focus();s.setSelectionRange(p,p)},250)">'; }
+const match = (q, s) => { q = up(q).trim(); if (q.length < 2) return true; const h = up(s); return q.split(/\s+/).every(t => h.includes(t)); };
+
+/* ---------- kartlar */
+const jobKind = j => j.kind === 'TAKVIM' ? ['Duruşma','b'] : j.kind === 'ARABULUCULUK' ? ['Arabuluculuk','p'] : has(j,'ONCELIKLI') ? ['Acil','r'] : has(j,'SURELI') ? ['Süreli','o'] : has(j,'TAKIP') ? ['Takip','g'] : ['İş','m'];
+const has = (j, k) => j.kind === k || (j.tags || []).includes(k);
+function jobCard(j){
+  const [kn, kc] = jobKind(j);
+  const d = j.date ? '<span class="dt">' + dayLab(j.date) + (j.time ? ' · ' + esc(j.time) : '') + '</span>' : '';
+  const late = !j.done && j.date && days(j.date) < 0;
+  return '<div class="it ' + (late ? 'r' : kc) + (j.done ? ' done' : '') + '" onclick="jobForm(\'' + j.id + '\')"><div class="tp"><span class="tg ' + kc + '">' + kn + (j.done ? ' ✓' : '') + '</span>' + d + '</div>' +
+    '<div class="ttl">' + esc(j.title) + '</div>' + (j.file ? '<div class="mu">' + esc(j.file) + '</div>' : '') + (j.detail ? '<div class="mu" style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden">' + esc(j.detail) + '</div>' : '') +
+    (j.done && j.doneNote ? '<div class="mu">✓ ' + esc(j.doneReason) + ': ' + esc(j.doneNote) + '</div>' : '') + '</div>';
+}
+function icraCard(f, extra){
+  return '<div class="it ' + f.level + '" onclick="icraView(\'' + f.id + '\')"><div class="tp"><span class="tg ' + f.level + '">' + esc(f.stage) + '</span><span class="dt">' + esc(f.office + ' ' + f.no) + '</span></div>' +
+    '<div class="ttl">' + esc(f.debtor) + (f.block || f.flat ? ' <span class="mu">' + esc((f.block || '') + (f.flat ? ' / ' + f.flat : '')) + '</span>' : '') + '</div>' +
+    '<div class="mu">' + esc(f.client) + (f.amount ? ' · ' + money(f.amount) : '') + '</div>' +
+    (f.nextStep ? '<div>→ ' + esc(f.nextStep) + (f.nextDate ? ' <b>' + fd(f.nextDate) + '</b>' : '') + '</div>' : '') + (extra || '') +
+    (f.alarms.length ? '<div>' + f.alarms.slice(0, 2).map(a => '<div class="' + (a.sev === 'r' ? 'rt' : 'ot') + '">● ' + esc(a.text) + '</div>').join('') + '</div>' : '') + '</div>';
+}
+function calItems(from, to){
+  const out = [];
+  for (const j of D.jobs) { if (j.done || !j.date) continue; const n = days(j.date); if (n < from || n > to) continue;
+    if (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK' || has(j,'SURELI')) out.push({date:j.date, html:jobCard(j)}); }
+  for (const f of D.icra) { if (f.stage === 'Kapandı' || !f.nextDate) continue; const n = days(f.nextDate); if (n < from || n > to) continue; out.push({date:f.nextDate, html:icraCard(f)}); }
+  out.sort((a, b) => a.date.localeCompare(b.date));
+  return out;
+}
+
+/* ---------- ana sayfa */
+function vHome(){
+  const open = D.jobs.filter(j => !j.done && j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK');
+  const due = open.filter(j => has(j,'SURELI')), late = due.filter(j => j.date && days(j.date) < 0);
+  const ev7 = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) >= 0 && days(j.date) <= 7);
+  const icOpen = D.icra.filter(f => f.stage !== 'Kapandı');
+  const icAl = icOpen.filter(f => f.alarms.some(a => a.kind !== 'işlemsiz' && a.kind !== 'tebligat' && a.kind !== 'itiraz'));
+  let h = pendingCard() + '<div class="kp"><div class="k" onclick="st.jobSeg=\'all\';go(\'jobs\')"><b>' + open.length + '</b><span>açık iş · ' + due.length + ' süreli' + (late.length ? ' · <span class="rt">' + late.length + ' geçmiş</span>' : '') + '</span></div>' +
+    '<div class="k" onclick="go(\'cal\')"><b>' + ev7.length + '</b><span>7 günde duruşma / toplantı</span></div>' +
+    '<div class="k" onclick="st.icraSeg=\'alarm\';go(\'icra\')"><b>' + icOpen.length + '</b><span>açık icra · ' + icAl.length + ' süre alarmı</span></div>' +
+    '<div class="k" onclick="st.icraSeg=\'emanet\';go(\'icra\')"><b>' + money(D.emanet) + '</b><span>emanet (aktarılmadı)</span></div></div>';
+  const pastEv = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) < 0);
+  if (pastEv.length || late.length) { h += '<h2>Dikkat</h2>'; pastEv.forEach(j => h += jobCard(j)); late.forEach(j => h += jobCard(j)); }
+  const t2 = calItems(0, 1);
+  h += '<h2>Bugün ve Yarın <small>' + fd(iso(today())) + '</small></h2>' + (t2.length ? t2.map(x => x.html).join('') : '<div class="empty">Kayıt yok.</div>');
+  const w = calItems(2, 14);
+  h += '<h2>Önümüzdeki 14 Gün <small>' + w.length + '</small></h2>';
+  let last = ''; w.forEach(x => { if (x.date !== last) { h += '<h3>' + dayLab(x.date) + '</h3>'; last = x.date; } h += x.html; });
+  if (!w.length) h += '<div class="empty">Kayıt yok.</div>';
+  const pri = open.filter(j => has(j,'ONCELIKLI'));
+  if (pri.length) { h += '<h2>Acil İşler</h2>'; pri.forEach(j => h += jobCard(j)); }
+  h += '<button class="btn sec" onclick="deadlineForm()">Süre Hesapla</button>';
+  $('#main').innerHTML = h;
+}
+
+/* ---------- işler */
+function vJobs(){
+  const segs = [['all','Tümü'],['ONCELIKLI','Acil'],['SURELI','Süreli'],['NORMAL','Normal'],['TAKIP','Takip'],['done','Yapılan']];
+  let h = searchBox('jobs', 'Ara: müvekkil, dosya, açıklama…') + '<div class="seg">' + segs.map(s => '<button class="' + (st.jobSeg === s[0] ? 'on' : '') + '" onclick="st.jobSeg=\'' + s[0] + '\';render()">' + s[1] + '</button>').join('') + '</div>';
+  let l = D.jobs.filter(j => j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK');
+  l = st.jobSeg === 'done' ? l.filter(j => j.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || '')) : l.filter(j => !j.done && (st.jobSeg === 'all' || has(j, st.jobSeg)));
+  l = l.filter(j => match(st.q.jobs, j.title + ' ' + j.file + ' ' + j.detail));
+  if (st.jobSeg !== 'done') { const ord = j => has(j,'ONCELIKLI') ? 0 : has(j,'SURELI') ? 1 : 2; l.sort((a, b) => ord(a) - ord(b) || (a.date || '9999').localeCompare(b.date || '9999')); }
+  h += '<div class="mu" style="margin:2px 4px">' + l.length + ' kayıt</div>' + (st.jobSeg === 'done' ? l.slice(0, 80) : l).map(jobCard).join('') + (l.length ? '' : '<div class="empty">Kayıt yok.</div>');
+  $('#main').innerHTML = h;
+}
+
+/* ---------- duruşma */
+function vCal(){
+  const segs = [['up','Yaklaşan'],['past','Sonucu girilmemiş'],['med','Arabuluculuk'],['done','Girilenler']];
+  let h = searchBox('cal', 'Ara: mahkeme, dosya, taraf…') + '<div class="seg">' + segs.map(s => '<button class="' + (st.calSeg === s[0] ? 'on' : '') + '" onclick="st.calSeg=\'' + s[0] + '\';render()">' + s[1] + '</button>').join('') + '</div>';
+  let l = D.jobs.filter(j => j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK');
+  if (st.calSeg === 'up') l = l.filter(j => !j.done && (!j.date || days(j.date) >= 0));
+  else if (st.calSeg === 'past') l = l.filter(j => !j.done && j.date && days(j.date) < 0);
+  else if (st.calSeg === 'med') l = l.filter(j => !j.done && j.kind === 'ARABULUCULUK');
+  else l = l.filter(j => j.done).reverse();
+  l = l.filter(j => match(st.q.cal, j.title + ' ' + j.file + ' ' + j.detail));
+  if (st.calSeg !== 'done') l.sort((a, b) => ((a.date || '') + (a.time || '')).localeCompare((b.date || '') + (b.time || '')));
+  let last = '';
+  l.slice(0, 120).forEach(j => { if (st.calSeg !== 'done' && j.date && j.date.slice(0, 7) !== last) { last = j.date.slice(0, 7); const d = pd(j.date); h += '<h3>' + MO[d.getMonth()] + ' ' + d.getFullYear() + '</h3>'; } h += jobCard(j); });
+  if (!l.length) h += '<div class="empty">Kayıt yok.</div>';
+  h += '<button class="btn sec" onclick="deadlineForm()">Süre Hesapla</button>';
+  $('#main').innerHTML = h;
+}
+
+/* ---------- icra */
+function vIcra(){
+  const segs = [['alarm','Alarmlı'],['week','Bu hafta'],['all','Tümü'],['emanet','Emanet'],['close','Kapatılacak'],['maas','Maaş H.']];
+  let h = searchBox('icra', 'Ara: borçlu, dosya no, blok…') + '<div class="seg">' + segs.map(s => '<button class="' + (st.icraSeg === s[0] ? 'on' : '') + '" onclick="st.icraSeg=\'' + s[0] + '\';render()">' + s[1] + '</button>').join('') + '</div>';
+  if (st.icraSeg === 'maas') {
+    let l = D.maas.filter(m => (!st.icraSite || m.site === st.icraSite) && match(st.q.icra, m.person + ' ' + m.creditor + ' ' + m.no + ' ' + m.siteName));
+    h += siteSel() + '<div class="mu" style="margin:2px 4px">' + l.length + ' maaş haczi</div>';
+    l.forEach(m => h += '<div class="it ' + (m.alarm ? 'r' : 'g') + '" onclick="maasForm(\'' + m.id + '\')"><div class="tp"><span class="tg ' + (m.alarm ? 'r' : 'g') + '">' + esc(m.siteName || m.employerRaw) + '</span><span class="dt">' + esc(m.office + ' ' + m.no) + '</span></div><div class="ttl">' + esc(m.person) + '</div><div class="mu">' + esc(m.creditor) + ' · ' + esc(m.status) + (m.monthly ? ' · aylık ' + money(m.monthly) : '') + '</div>' + (m.alarm ? '<div class="rt">' + esc(m.alarm) + '</div>' : '') + '</div>');
+    $('#main').innerHTML = h; return;
+  }
+  h += '<div class="row">' + siteSel() + '<select class="sel" onchange="st.icraStage=this.value;render()"><option value="">Tüm aşamalar</option>' + D.stages.map(s => '<option' + (st.icraStage === s ? ' selected' : '') + '>' + esc(s) + '</option>').join('') + '</select></div>';
+  let l = D.icra.filter(f => (!st.icraSite || f.site === st.icraSite || (st.icraSite === '*' && !f.site)) && (!st.icraStage || f.stage === st.icraStage));
+  const lim = iso(new Date(Date.now() + 7 * 864e5));
+  if (st.icraSeg === 'alarm') l = l.filter(f => f.stage !== 'Kapandı' && f.alarms.some(a => a.kind !== 'işlemsiz' && a.kind !== 'tebligat'));
+  else if (st.icraSeg === 'week') l = l.filter(f => f.stage !== 'Kapandı' && f.nextDate && f.nextDate <= lim);
+  else if (st.icraSeg === 'emanet') l = l.filter(f => f.tah.some(t => t.kind === 'Asıl alacak' && !t.transferred));
+  else if (st.icraSeg === 'close') l = l.filter(f => /kapatılacak/.test(f.stage));
+  else if (!st.icraStage) l = l.filter(f => f.stage !== 'Kapandı');
+  l = l.filter(f => match(st.q.icra, f.client + ' ' + f.office + ' ' + f.no + ' ' + f.debtor + ' ' + f.creditor + ' ' + f.block + ' ' + f.flat + ' ' + f.nextStep));
+  const rk = f => f.level === 'r' ? 0 : f.level === 'o' ? 1 : 2;
+  l.sort((a, b) => st.icraSeg === 'week' ? (a.nextDate || '').localeCompare(b.nextDate || '') : rk(a) - rk(b) || (b.start || '').localeCompare(a.start || ''));
+  const sum = l.reduce((s, f) => s + (f.amount || 0), 0);
+  h += '<div class="mu" style="margin:6px 4px">' + l.length + ' dosya · ' + money(sum) + '</div>';
+  l.slice(0, 150).forEach(f => { const em = f.tah.filter(t => t.kind === 'Asıl alacak' && !t.transferred).map(t => '<div class="rt">Emanet ' + money(t.cents) + ' (' + fd(t.date) + ')</div>').join(''); h += icraCard(f, st.icraSeg === 'emanet' ? em : ''); });
+  if (l.length > 150) h += '<div class="empty">İlk 150 gösteriliyor – aramayı daraltın.</div>';
+  if (!l.length) h += '<div class="empty">Kayıt yok.</div>';
+  $('#main').innerHTML = h;
+}
+function siteSel(){ return '<select class="sel" onchange="st.icraSite=this.value;render()"><option value="">Tüm müvekkiller</option>' + D.sites.map(s => '<option value="' + esc(s.code) + '"' + (st.icraSite === s.code ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '<option value="*"' + (st.icraSite === '*' ? ' selected' : '') + '>Site dışı</option></select>'; }
+
+/* ---------- müvekkiller */
+function vCli(){
+  let h = searchBox('cli', 'Ara: ad, telefon…');
+  let l = D.clients.filter(c => match(st.q.cli, c.name + ' ' + c.phone + ' ' + c.relName)).sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+  l.forEach(c => {
+    const nc = D.cases.filter(k => k.clientId === c.id && k.status !== 'Kapandı').length, ni = c.site ? D.icra.filter(f => f.site === c.site && f.stage !== 'Kapandı').length : 0;
+    h += '<div class="it ' + (c.balance < 0 ? 'r' : 'g') + '" onclick="clientView(\'' + c.id + '\')"><div class="tp"><div class="ttl">' + esc(c.name) + '</div><span class="dt">' + (c.balance ? money(c.balance) : '') + '</span></div><div class="mu">' + esc(c.type) + ' · ' + nc + ' dosya' + (ni ? ' · ' + ni + ' icra' : '') + (c.phone ? ' · ' + esc(c.phone) : '') + '</div></div>';
+  });
+  if (!l.length) h += '<div class="empty">Kayıt yok.</div>';
+  $('#main').innerHTML = h;
+}
+
+/* ---------- kasa */
+function vKasa(){
+  if (!st.month) st.month = D.today.slice(0, 7);
+  const [y, m] = st.month.split('-').map(Number);
+  const l = D.entries.filter(e => (e.date || '').slice(0, 7) === st.month).sort((a, b) => b.date.localeCompare(a.date));
+  const inc = l.filter(e => e.type === 'Gelir').reduce((s, e) => s + e.cents, 0), exp = l.filter(e => e.type !== 'Gelir').reduce((s, e) => s + e.cents, 0);
+  const sh = d => { const x = new Date(y, m - 1 + d, 1); st.month = x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0'); render(); };
+  window._sh = sh;
+  let h = '<div class="sub"><button class="btn sm sec" onclick="_sh(-1)">‹</button><h2 style="margin:8px 0">' + MO[m - 1] + ' ' + y + '</h2><button class="btn sm sec" onclick="_sh(1)">›</button></div>';
+  h += '<div class="kp"><div class="k"><b class="gt">' + money(inc) + '</b><span>gelir</span></div><div class="k"><b style="color:var(--r)">' + money(exp) + '</b><span>gider</span></div><div class="k"><b>' + money(inc - exp) + '</b><span>net</span></div><div class="k"><b>' + l.length + '</b><span>kayıt</span></div></div>';
+  h += '<div class="row" style="margin-top:10px"><button class="btn gr" onclick="entryForm(null,\'Gelir\')">+ Gelir</button><button class="btn dan" onclick="entryForm(null,\'Gider\')">+ Gider</button></div><h2>Kayıtlar</h2>';
+  l.forEach(e => h += '<div class="it ' + (e.type === 'Gelir' ? 'g' : 'r') + '" onclick="entryForm(\'' + e.id + '\')"><div class="tp"><div class="ttl">' + esc(e.category) + '</div><span class="dt" style="color:' + (e.type === 'Gelir' ? 'var(--gr)' : 'var(--r)') + '">' + (e.type === 'Gelir' ? '+ ' : '− ') + money(e.cents) + '</span></div><div class="mu">' + fd(e.date) + (e.description ? ' · ' + esc(e.description) : '') + '</div></div>');
+  if (!l.length) h += '<div class="empty">Bu ay kayıt yok.</div>';
+  $('#main').innerHTML = h;
+}
+
+/* ---------- form altyapısı */
+let sheetStack = [];
+function openSheet(title, html, actions){
+  const s = document.createElement('div'); s.className = 'sheet';
+  s.innerHTML = '<div class="sh"><button class="hb" onclick="closeSheet()">‹ Geri</button><h1>' + esc(title) + '</h1>' + (actions || '') + '</div>' + html + '<div class="err"></div>';
+  document.body.appendChild(s); sheetStack.push(s);
+  requestAnimationFrame(() => s.classList.add('show'));
+  return s;
+}
+function closeSheet(){ const s = sheetStack.pop(); if (!s) return; s.classList.remove('show'); setTimeout(() => s.remove(), 250); }
+function closeAll(){ while (sheetStack.length) closeSheet(); }
+const F = {
+  text: (id, lab, v, ph) => '<label class="f">' + lab + '</label><input class="in" id="' + id + '" value="' + esc(v) + '" placeholder="' + esc(ph || '') + '">',
+  num: (id, lab, v) => '<label class="f">' + lab + '</label><input class="in" id="' + id + '" inputmode="decimal" value="' + esc(v) + '" placeholder="0">',
+  date: (id, lab, v) => '<label class="f">' + lab + '</label><input class="in" type="date" id="' + id + '" value="' + esc(v || '') + '">',
+  time: (id, lab, v) => '<label class="f">' + lab + '</label><input class="in" type="time" id="' + id + '" value="' + esc(v || '') + '">',
+  area: (id, lab, v) => '<label class="f">' + lab + '</label><textarea class="in" id="' + id + '">' + esc(v) + '</textarea>',
+  sel: (id, lab, opts, v) => '<label class="f">' + lab + '</label><select class="in" id="' + id + '">' + opts.map(o => { const [val, tx] = Array.isArray(o) ? o : [o, o]; return '<option value="' + esc(val) + '"' + (val === v ? ' selected' : '') + '>' + esc(tx) + '</option>'; }).join('') + '</select>',
+  chips: (id, lab, opts, vals, multi) => '<label class="f">' + lab + '</label><div class="chk" id="' + id + '" data-multi="' + (multi ? 1 : 0) + '">' + opts.map(o => { const [val, tx] = Array.isArray(o) ? o : [o, o]; return '<button type="button" data-v="' + esc(val) + '" class="' + (vals.includes(val) ? 'on' : '') + '" onclick="chip(this)">' + esc(tx) + '</button>'; }).join('') + '</div>'
+};
+function chip(b){ const p = b.parentNode; if (p.dataset.multi !== '1') p.querySelectorAll('button').forEach(x => x !== b && x.classList.remove('on')); b.classList.toggle('on'); if (p.onchipchange) p.onchipchange(); }
+const V = id => { const e = document.querySelector('.sheet.show #' + id) || document.getElementById(id); return e ? e.value.trim() : ''; };
+const CH = id => { const e = document.querySelector('.sheet.show #' + id) || document.getElementById(id); return e ? [...e.querySelectorAll('button.on')].map(b => b.dataset.v) : []; };
+
+/* ---------- iş / duruşma formu */
+function jobForm(id, kind){
+  const j = id ? D.jobs.find(x => x.id === id) : null;
+  const k0 = j ? j.kind : (kind || 'NORMAL'), isEv = k0 === 'TAKVIM' || k0 === 'ARABULUCULUK';
+  const tags = j ? [j.kind].concat(j.tags || []) : [k0 === 'TAKVIM' || k0 === 'ARABULUCULUK' ? 'NORMAL' : k0];
+  let h = '<div class="card">' + F.chips('jmode', 'Kayıt türü', [['IS','İş'],['TAKVIM','Duruşma'],['ARABULUCULUK','Arabuluculuk']], [isEv ? k0 : 'IS']) +
+    '<div id="jcat">' + F.chips('jtags', 'Bölüm (birden fazla seçilebilir)', [['ONCELIKLI','Acil'],['SURELI','Süreli'],['NORMAL','Normal'],['TAKIP','Takip']], tags, true) + '</div>' +
+    '<div class="row"><div>' + F.date('jdate', 'Tarih / son gün', j ? j.date : '') + '</div><div id="jtw">' + F.time('jtime', 'Saat', j ? j.time : '') + '</div></div>' +
+    F.text('jtitle', isEv ? 'Mahkeme / yer' : 'Dosya / müvekkil', j ? j.title : '', isEv ? 'Örn. Büyükçekmece 3. Asliye Hukuk' : 'Örn. Yurdagül Saka – 2026/902') +
+    F.text('jfile', isEv ? 'Esas no – taraflar' : 'Dosya no (isteğe bağlı)', j ? j.file : '') + F.area('jdetail', 'Açıklama', j ? j.detail : '') +
+    F.sel('jas', 'Sorumlu', D.owners, j ? (j.assignee || 'Faruk') : 'Faruk') + '</div>';
+  if (j && j.att) h += '<div class="mu" style="margin:0 4px">📎 ' + j.att + ' ek dosya (bilgisayarda)</div>';
+  h += '<button class="btn" id="jsave">Kaydet</button>';
+  if (j && !j.done) h += '<button class="btn gr" id="jdone">' + (isEv ? (k0 === 'ARABULUCULUK' ? 'Toplantı yapıldı – netice gir' : 'Duruşmaya girildi – not gir') : 'Yapıldı') + '</button>';
+  if (j && j.done) h += '<div class="card"><b>✓ ' + esc(j.doneReason) + '</b><div class="mu">' + esc((j.doneAt || '').replace('T', ' ')) + '</div><div>' + esc(j.doneNote) + '</div></div><button class="btn sec" id="jundo">Yeniden aç</button>';
+  if (j) h += '<button class="btn dan" id="jdel">Sil</button>';
+  const s = openSheet(j ? (isEv ? 'Duruşma / Toplantı' : 'İş') : 'Yeni Kayıt', h);
+  const sync = () => { const ev = CH('jmode')[0] !== 'IS'; s.querySelector('#jcat').classList.toggle('hide', ev); s.querySelector('#jtw').classList.toggle('hide', !ev); };
+  s.querySelector('#jmode').onchipchange = sync; sync();
+  s.querySelector('#jsave').onclick = () => { const md = CH('jmode')[0] || 'IS';
+    save('job/save', {id: j ? j.id : '', kind: md === 'IS' ? 'NORMAL' : md, tags: CH('jtags'), date: V('jdate'), time: V('jtime'), title: V('jtitle'), file: V('jfile'), detail: V('jdetail'), assignee: V('jas')}); };
+  if (j && !j.done) s.querySelector('#jdone').onclick = () => doneForm(j);
+  if (j && j.done) s.querySelector('#jundo').onclick = () => save('job/done', {id: j.id, done: false}, 'Yeniden açıldı');
+  if (j) s.querySelector('#jdel').onclick = () => { if (confirm('Bu kayıt silinsin mi?')) save('job/delete', {id: j.id}, 'Silindi'); };
+}
+function doneForm(j){
+  const ev = j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK', med = j.kind === 'ARABULUCULUK';
+  let h = '<div class="card"><div class="ttl">' + esc(j.title) + '</div><div class="mu">' + esc(j.file) + '</div>' +
+    (ev ? (med ? F.sel('dreason', 'Netice', D.medOutcomes, 'Anlaşma') : '') : F.sel('dreason', 'Sebep', D.doneReasons, 'İşlem yapıldı')) +
+    F.area('dnote', ev ? (med ? 'Toplantı notu (zorunlu)' : 'Duruşma notu – ne oldu, ara karar, sonraki tarih (zorunlu)') : 'Not', '') + '</div><button class="btn gr" id="dok">Kaydet</button>' +
+    (ev ? '<div class="mu" style="margin:10px 4px">Tutanak / form dosyası eklemek için bilgisayardaki programı kullanın. Sonraki duruşmayı ayrıca ekleyin.</div>' : '');
+  const s = openSheet(ev ? 'Sonuç Gir' : 'Yapıldı', h);
+  s.querySelector('#dok').onclick = async () => { const r = await save('job/done', {id: j.id, done: true, reason: V('dreason'), note: V('dnote')}, 'İşaretlendi'); if (r) closeAll(); };
+}
+
+/* ---------- süre hesaplayıcı */
+function deadlineForm(){
+  const pre = [['HMK istinaf',2,'hafta',1],['HMK temyiz',1,'ay',1],['Cevap dilekçesi',2,'hafta',1],['Ödeme emrine itiraz',7,'gün',0],['İcra şikayeti',7,'gün',0],['İİK 68',6,'ay',0],['İİK 67',1,'yıl',0]];
+  let h = '<div class="card"><div class="chk">' + pre.map((p, i) => '<button type="button" onclick="dlPre(' + i + ')">' + p[0] + '</button>').join('') + '</div>' +
+    F.date('dls', 'Tebliğ / başlangıç tarihi', D.today) + '<div class="row"><div>' + F.num('dln', 'Süre', '2') + '</div><div>' + F.sel('dlu', 'Birim', ['gün','hafta','ay','yıl'], 'hafta') + '</div></div>' +
+    '<label class="f"><input type="checkbox" id="dlj" checked> Adli tatil (HMK 104) – icra ve cezada kaldırın</label></div>' +
+    '<div class="card"><div id="dlr" class="ttl" style="font-size:18px;color:var(--m)">—</div><div id="dlw" class="mu"></div></div>' +
+    '<div class="card">' + F.text('dlt', 'Süreli iş olarak eklemek için: dosya / müvekkil', '') + '</div><button class="btn" id="dla">Süreli İş Olarak Ekle</button>';
+  const s = openSheet('Süre Hesapla', h);
+  window.dlPre = i => { const p = pre[i]; s.querySelector('#dln').value = p[1]; s.querySelector('#dlu').value = p[2]; s.querySelector('#dlj').checked = !!p[3]; calc(); };
+  let res = null;
+  const calc = async () => { try { const r = await api('deadline', {start: s.querySelector('#dls').value, n: +s.querySelector('#dln').value, unit: s.querySelector('#dlu').value, jh: s.querySelector('#dlj').checked});
+      res = r.date; const d = pd(r.date); s.querySelector('#dlr').textContent = 'Son gün: ' + fd(r.date) + ' ' + WD[d.getDay()] + ' (' + rel(r.date) + ')'; s.querySelector('#dlw').innerHTML = r.why.map(esc).join('<br>'); }
+    catch(e){ s.querySelector('#dlr').textContent = e.message; res = null; } };
+  ['dls','dln','dlu','dlj'].forEach(id => s.querySelector('#' + id).addEventListener('change', calc)); s.querySelector('#dln').addEventListener('input', calc);
+  calc();
+  s.querySelector('#dla').onclick = () => { if (!res) return; if (!V('dlt')) { s.querySelector('.err').textContent = 'Dosya / müvekkil yazın'; return; }
+    save('job/save', {kind: 'SURELI', tags: ['SURELI'], date: res, title: V('dlt'), detail: '[Süre hesabı] ' + s.querySelector('#dlw').innerText.replace(/\n/g, ' • '), assignee: 'Faruk'}, 'Süreli iş eklendi'); };
+}
+
+/* ---------- icra dosyası */
+function icraView(id){
+  const f = D.icra.find(x => x.id === id); if (!f) return;
+  let h = '<div class="card"><div class="tp"><span class="tg ' + f.level + '">' + esc(f.stage) + '</span><span class="dt">' + esc(f.type) + (f.group ? ' · Grup ' + esc(f.group) : '') + '</span></div>' +
+    '<div class="ttl" style="font-size:17px">' + esc(f.debtor) + '</div><div class="kv" style="margin-top:6px"><span>Müvekkil</span><b>' + esc(f.client) + '</b><span>Rol</span><div>' + esc(f.role) + '</div><span>Alacaklı</span><div>' + esc(f.creditor) + '</div>' +
+    '<span>Blok / daire</span><div>' + esc((f.block || '') + (f.flat ? ' / ' + f.flat : '')) + (f.occupant ? ' (' + esc(f.occupant) + ')' : '') + '</div><span>Takip</span><div>' + fd(f.start) + (f.amount ? ' · ' + money(f.amount) : '') + '</div>' +
+    (f.fee ? '<span>Vekalet ücreti</span><div>' + money(f.fee) + '</div>' : '') + '<span>Son işlem</span><div>' + fd(f.last) + '</div>' + (f.nextStep ? '<span>Sonraki adım</span><b>' + esc(f.nextStep) + (f.nextDate ? ' – ' + fd(f.nextDate) : '') + '</b>' : '') +
+    (f.objServed ? '<span>İtiraz tebliği</span><div>' + fd(f.objServed) + '</div>' : '') + (f.owner ? '<span>Sorumlu</span><div>' + esc(f.owner) + '</div>' : '') + '</div>' +
+    (f.alarms.length ? '<div style="margin-top:8px">' + f.alarms.map(a => '<div class="' + (a.sev === 'r' ? 'rt' : 'ot') + '">● ' + esc(a.text) + '</div>').join('') + '</div>' : '') + '</div>';
+  h += '<div class="row"><button class="btn" onclick="icraForm(\'' + f.id + '\')">Düzenle</button><button class="btn sec" onclick="icraTouch(\'' + f.id + '\')">Son işlem: bugün</button></div>';
+  h += '<h2>Tahsilatlar <small>' + f.tah.length + '</small></h2>';
+  f.tah.forEach(t => { const main = t.kind === 'Asıl alacak';
+    h += '<div class="it ' + (main ? (t.transferred ? 'g' : 'r') : t.kind === 'Vekalet ücreti' ? 'o' : 'b') + '"><div class="tp"><b>' + money(t.cents) + '</b><span class="dt">' + fd(t.date) + '</span></div><div class="mu">' + esc(t.kind) + (t.note ? ' · ' + esc(t.note) : '') + '</div>' +
+      (main ? (t.transferred ? '<div class="gt">Müvekkile aktarıldı ' + fd(t.transferred) + '</div>' : '<div class="rt">Emanette – aktarılmadı</div>') : t.kind === 'Vekalet ücreti' ? '<div class="mu">Gelir\'e işlendi</div>' : '') +
+      '<div class="row" style="margin-top:6px">' + (main ? '<button class="btn sm sec" onclick="tahTr(\'' + t.id + '\',' + (t.transferred ? 'false' : 'true') + ')">' + (t.transferred ? 'Geri al' : 'Aktarıldı (bugün)') + '</button>' : '') + '<button class="btn sm dan" onclick="tahDel(\'' + t.id + '\')">Sil</button></div></div>'; });
+  h += '<button class="btn sec" onclick="tahForm(\'' + f.id + '\')">+ Tahsilat / harç ekle</button>';
+  h += '<h2>Hacizler <small>' + f.haciz.length + '</small></h2>';
+  f.haciz.forEach(x => h += '<div class="it m"><div class="tp"><b>' + esc(x.type) + '</b><span class="dt">' + fd(x.date) + '</span></div>' + (x.note ? '<div class="mu">' + esc(x.note) + '</div>' : '') + '<button class="btn sm dan" style="margin-top:6px" onclick="hacDel(\'' + x.id + '\')">Sil</button></div>');
+  h += '<button class="btn sec" onclick="hacForm(\'' + f.id + '\')">+ Haciz ekle</button>';
+  if (f.fcNote || f.officeNote || f.claimDesc) h += '<h2>Notlar</h2><div class="card">' + (f.fcNote ? '<p><b>FC talimat:</b> ' + esc(f.fcNote) + '</p>' : '') + (f.officeNote ? '<p><b>Ofis bilgi:</b> ' + esc(f.officeNote) + '</p>' : '') + (f.claimDesc ? '<p><b>Alacak:</b> ' + esc(f.claimDesc) + '</p>' : '') + '</div>';
+  openSheet(f.office + ' ' + f.no, h);
+}
+async function icraTouch(id){ const f = D.icra.find(x => x.id === id); try { await api('icra/save', Object.assign(icraBody(f), {lastAction: D.today})); toast('Son işlem bugün'); refreshSheet(() => icraView(id)); } catch(e){ toast(e.message); } }
+function icraBody(f){ return {id:f.id, site:f.site, client:f.clientRaw, role:f.role, office:f.office, no:f.no, type:f.type, creditor:f.creditor, debtor:f.debtor, block:f.block, flat:f.flat, occupant:f.occupant, start:f.start, amount:amt(f.amount), fee:amt(f.fee), stage:f.stage, group:f.group, objServed:f.objServed, court:f.court, lastAction:f.lastAction, nextStep:f.nextStep, nextDate:f.nextDate, owner:f.owner, fcNote:f.fcNote, officeNote:f.officeNote, claimDesc:f.claimDesc, feeAsked:f.feeAsked, feeGot:f.feeGot, feeGotAmount:amt(f.feeGotAmount)}; }
+async function tahTr(id, on){ try { await api('icra/tahsilat/transfer', {id: id, date: on ? D.today : ''}); toast(on ? 'Aktarıldı' : 'Geri alındı'); const f = D.icra.find(x => x.tah.some(t => t.id === id)); refreshSheet(() => icraView(f.id)); } catch(e){ toast(e.message); } }
+async function tahDel(id){ if (!confirm('Tahsilat silinsin mi? (Bağlı gelir / masraf kaydı da silinir)')) return; const f = D.icra.find(x => x.tah.some(t => t.id === id)); try { await api('icra/tahsilat/delete', {id}); toast('Silindi'); refreshSheet(() => icraView(f.id)); } catch(e){ toast(e.message); } }
+async function hacDel(id){ if (!confirm('Haciz silinsin mi?')) return; const f = D.icra.find(x => x.haciz.some(t => t.id === id)); try { await api('icra/haciz/delete', {id}); toast('Silindi'); refreshSheet(() => icraView(f.id)); } catch(e){ toast(e.message); } }
+function tahForm(fid){
+  const s = openSheet('Tahsilat / Harç', '<div class="card">' + F.date('td', 'Tarih', D.today) + F.sel('tk', 'Tür', ['Asıl alacak','Vekalet ücreti','Masraf','Kapanış / tahsil harcı'], 'Asıl alacak') + F.num('ta', 'Tutar (TL)', '') + F.text('tn', 'Not', '') +
+    '<div class="mu" style="margin-top:8px">Asıl alacak emanettir (gelir değildir) · vekalet ücreti Gelir\'e işlenir · kapanış harcı müvekkilin masraf hesabına işlenir.</div></div><button class="btn" id="tok">Ekle</button>');
+  s.querySelector('#tok').onclick = async () => { try { await api('icra/tahsilat', {fileId: fid, date: V('td'), kind: V('tk'), amount: V('ta'), note: V('tn')}); toast('Eklendi'); closeSheet(); refreshSheet(() => icraView(fid)); } catch(e){ s.querySelector('.err').textContent = e.message; } };
+}
+function hacForm(fid){
+  const s = openSheet('Haciz', '<div class="card">' + F.sel('ht', 'Tür', D.hacizTypes, 'Taşınmaz') + F.date('hd', 'Tarih', D.today) + F.text('hn', 'Not', '', 'plaka, tapu, banka…') + '</div><button class="btn" id="hok">Ekle</button>');
+  s.querySelector('#hok').onclick = async () => { try { await api('icra/haciz', {fileId: fid, type: V('ht'), date: V('hd'), note: V('hn')}); toast('Eklendi'); closeSheet(); refreshSheet(() => icraView(fid)); } catch(e){ s.querySelector('.err').textContent = e.message; } };
+}
+function icraForm(id){
+  const f = id ? D.icra.find(x => x.id === id) : {site:'', clientRaw:'', role:D.roles[0], type:D.types[0], stage:D.stages[0], start:D.today, lastAction:D.today, amount:0, fee:0, feeGotAmount:0};
+  const sites = [['', 'Site değil (kişi / şirket)']].concat(D.sites.map(s => [s.code, s.name]));
+  let h = '<div class="card">' + F.sel('isite', 'Müvekkil site', sites, f.site || '') + '<div id="icw">' + F.text('icli', 'Müvekkil (kişi / şirket)', f.clientRaw || '') + '</div>' +
+    F.sel('irole', 'Rolümüz', D.roles, f.role) + '<div class="row"><div>' + F.text('ioff', 'İcra dairesi', f.office || '', 'BÇ') + '</div><div>' + F.text('ino', 'Dosya no', f.no || '', '2026/12345') + '</div></div>' +
+    F.sel('itype', 'Takip türü', D.types, f.type) + F.text('icred', 'Alacaklı', f.creditor || '') + F.text('idebt', 'Borçlu', f.debtor || '') +
+    '<div class="row"><div>' + F.text('iblk', 'Blok', f.block || '') + '</div><div>' + F.text('iflt', 'Daire', f.flat || '') + '</div></div>' + F.sel('iocc', 'Malik / kiracı', [['','Belirsiz'],'Malik','Kiracı'], f.occupant || '') +
+    '<div class="row"><div>' + F.date('istart', 'Takip tarihi', f.start) + '</div><div>' + F.num('iamt', 'Takip miktarı', amt(f.amount)) + '</div></div>' + F.num('ifee', 'Vekalet ücreti', amt(f.fee)) + '</div>' +
+    '<div class="card">' + F.sel('istage', 'Aşama', D.stages, f.stage) + '<div id="iobj">' + F.date('iobjd', 'İtirazın tebliğ tarihi (zorunlu)', f.objServed) + F.text('icourt', 'Mahkeme', f.court || '') + '</div>' +
+    '<div id="iext">' + F.chips('iasked', 'Ücret istendi mi?', [['E','Evet'],['H','Hayır']], [f.feeAsked || '']) + F.chips('igot', 'Ücret alındı mı?', [['E','Evet'],['H','Hayır']], [f.feeGot || '']) + F.num('igota', 'Alınan tutar', amt(f.feeGotAmount)) + '</div>' +
+    F.chips('igrp', 'Grup', [['A','A'],['B','B'],['C','C'],['','Yok']], [f.group || '']) + '<div class="row"><div>' + F.date('ilast', 'Son işlem', f.lastAction) + '</div><div>' + F.sel('iown', 'Sorumlu', [['','Atanmamış']].concat(D.owners), f.owner || '') + '</div></div>' +
+    F.text('inext', 'Sonraki adım', f.nextStep || '') + F.date('inextd', 'Sonraki adım tarihi', f.nextDate) + '</div>' +
+    '<div class="card">' + F.area('ifc', 'Bilgi / talimat (FC)', f.fcNote || '') + F.area('iof', 'Ofis bilgi', f.officeNote || '') + F.area('icl', 'Alacak açıklaması', f.claimDesc || '') + '</div><button class="btn" id="iok">Kaydet</button>' + (id ? '<button class="btn dan" id="idel">Dosyayı Sil</button>' : '');
+  const s = openSheet(id ? 'Dosyayı Düzenle' : 'Yeni İcra Dosyası', h);
+  const sync = () => { const stg = s.querySelector('#istage').value; s.querySelector('#iobj').classList.toggle('hide', !/İtiraz|Dava bitti/.test(stg)); s.querySelector('#iext').classList.toggle('hide', stg !== 'Haricen tahsil (kapatılacak)'); s.querySelector('#icw').classList.toggle('hide', !!s.querySelector('#isite').value); };
+  s.querySelector('#istage').onchange = sync; s.querySelector('#isite').onchange = sync; sync();
+  s.querySelector('#iok').onclick = async () => {
+    const r = await save('icra/save', {id: id || '', site: V('isite'), client: V('icli'), role: V('irole'), office: V('ioff'), no: V('ino'), type: V('itype'), creditor: V('icred'), debtor: V('idebt'), block: V('iblk'), flat: V('iflt'), occupant: V('iocc'),
+      start: V('istart'), amount: V('iamt'), fee: V('ifee'), stage: V('istage'), objServed: V('iobjd'), court: V('icourt'), feeAsked: CH('iasked')[0] || '', feeGot: CH('igot')[0] || '', feeGotAmount: V('igota'),
+      group: CH('igrp')[0] || '', lastAction: V('ilast'), owner: V('iown'), nextStep: V('inext'), nextDate: V('inextd'), fcNote: V('ifc'), officeNote: V('iof'), claimDesc: V('icl')});
+    if (r && id) { if (sheetStack.length) { sheetStack.pop().remove(); } icraView(id); }
+  };
+  if (id) s.querySelector('#idel').onclick = async () => { if (confirm('İcra dosyası, hacizleri ve tahsilatları silinsin mi?')) { const r = await save('icra/delete', {id}, 'Silindi'); if (r) closeAll(); } };
+}
+function maasForm(id){
+  const m = id ? D.maas.find(x => x.id === id) : {site:''};
+  let h = '<div class="card">' + F.sel('msite', 'İşveren site', [['','(tanınmayan)']].concat(D.sites.map(s => [s.code, s.name])), m.site || '') + F.text('mper', 'Personel', m.person || '') + F.text('mcre', 'Alacaklı', m.creditor || '') +
+    '<div class="row"><div>' + F.text('moff', 'İcra dairesi', m.office || '') + '</div><div>' + F.text('mno', 'Dosya no', m.no || '') + '</div></div>' + F.text('mflt', 'Daire / dosya', m.flat || '') +
+    '<div class="row"><div>' + F.date('mwrit', 'Müzekkere', m.writ) + '</div><div>' + F.date('mans', 'Cevap verildi', m.answered) + '</div></div>' +
+    '<div class="row"><div>' + F.num('mmon', 'Aylık kesinti', amt(m.monthly)) + '</div><div>' + F.num('msent', 'Gönderilen', amt(m.sent)) + '</div></div>' + F.num('mdebt', 'Borç', amt(m.debt)) +
+    '<div class="row"><div>' + F.date('mleft', 'İşten ayrıldı', m.left && m.left !== '?' ? m.left : '') + '</div><div>' + F.chips('mnot', 'İcraya bildirildi', [['E','Evet'],['H','Hayır']], [m.notified || '']) + '</div></div>' +
+    F.area('mfc', 'Bilgi / talimat', m.fcNote || '') + F.area('mof', 'Ofis bilgi', m.officeNote || '') + '</div><button class="btn" id="mok">Kaydet</button>';
+  const s = openSheet(id ? m.person : 'Yeni Maaş Haczi', h);
+  s.querySelector('#mok').onclick = () => save('maas/save', {id: id || '', site: V('msite'), person: V('mper'), creditor: V('mcre'), office: V('moff'), no: V('mno'), flat: V('mflt'), reg: m.reg || '', writ: V('mwrit'), answered: V('mans'),
+    left: V('mleft'), notified: CH('mnot')[0] || '', monthly: V('mmon'), sent: V('msent'), debt: V('mdebt'), fcNote: V('mfc'), officeNote: V('mof')});
+}
+
+/* ---------- müvekkil */
+function clientView(id){
+  const c = D.clients.find(x => x.id === id); if (!c) return;
+  const ks = D.cases.filter(k => k.clientId === id), ms = D.moves.filter(m => m.clientId === id).sort((a, b) => b.date.localeCompare(a.date));
+  const ic = c.site ? D.icra.filter(f => f.site === c.site && f.stage !== 'Kapandı') : D.icra.filter(f => up(f.client) === up(c.name) && f.stage !== 'Kapandı');
+  const nm = up(c.name), js = nm.length > 3 ? D.jobs.filter(j => !j.done && up(j.title + ' ' + j.file + ' ' + j.detail).includes(nm)) : [];
+  let h = '<div class="card"><div class="ttl" style="font-size:18px">' + esc(c.name) + '</div><div class="mu">' + esc(c.type) + '</div>' +
+    (c.phone ? '<div style="margin-top:6px">Cep: <a class="tel" href="tel:' + esc(c.phone.replace(/[^0-9+]/g, '')) + '">' + esc(c.phone) + '</a></div>' : '') +
+    (c.relPhone ? '<div>2. tel' + (c.relName ? ' (' + esc(c.relName) + ')' : '') + ': <a class="tel" href="tel:' + esc(c.relPhone.replace(/[^0-9+]/g, '')) + '">' + esc(c.relPhone) + '</a></div>' : '') +
+    (c.contact ? '<div class="mu">' + esc(c.contact) + '</div>' : '') + '</div>';
+  h += '<div class="kp"><div class="k"><b style="color:' + (c.balance < 0 ? 'var(--r)' : 'var(--gr)') + '">' + money(Math.abs(c.balance)) + '</b><span>' + (c.balance > 0 ? 'avanstan kalan' : c.balance < 0 ? 'müvekkilden alacak' : 'masraf hesabı kapalı') + '</span></div><div class="k"><b>' + money(c.feeGot) + '</b><span>alınan ücret' + (c.agreed ? ' / ' + money(c.agreed) : '') + '</span></div></div>';
+  h += '<div class="row"><button class="btn" onclick="moveForm(null,\'' + id + '\')">+ Hareket</button><button class="btn sec" onclick="clientForm(\'' + id + '\')">Düzenle</button></div>';
+  h += '<h2>Dosyalar <small>' + ks.length + '</small></h2>';
+  ks.forEach(k => h += '<div class="it ' + (k.status === 'Kapandı' ? '' : 'm') + '" onclick="caseForm(\'' + k.id + '\',\'' + id + '\')"><div class="tp"><span class="tg m">' + esc(k.kind) + '</span><span class="dt">' + esc(k.status) + '</span></div><div class="ttl">' + esc(k.label) + '</div><div class="mu">' + esc(k.subject) + (k.fee ? ' · ücret ' + money(k.fee) : '') + '</div></div>');
+  h += '<button class="btn sec" onclick="caseForm(null,\'' + id + '\')">+ Dosya ekle</button>';
+  if (js.length) { h += '<h2>Açık işler / duruşmalar <small>' + js.length + '</small></h2>'; js.forEach(j => h += jobCard(j)); }
+  if (ic.length) { h += '<h2>İcra dosyaları <small>' + ic.length + '</small></h2>'; ic.slice(0, 40).forEach(f => h += icraCard(f)); if (ic.length > 40) h += '<div class="empty">İlk 40 – tümü İcra sekmesinde (site filtresi).</div>'; }
+  h += '<h2>Hesap hareketleri <small>' + ms.length + '</small></h2>';
+  ms.forEach(m => { const k = D.cases.find(x => x.id === m.caseId); const plus = m.type === 'Avans Alındı';
+    h += '<div class="it ' + (m.type === 'Ücret Alındı' ? 'o' : plus ? 'g' : 'r') + '" onclick="moveForm(\'' + m.id + '\',\'' + id + '\')"><div class="tp"><b>' + esc(m.type) + '</b><span class="dt">' + (plus ? '+ ' : m.type === 'Ücret Alındı' ? '' : '− ') + money(m.cents) + '</span></div><div class="mu">' + fd(m.date) + (m.desc ? ' · ' + esc(m.desc) : '') + (k ? ' · ' + esc(k.label) : '') + '</div></div>'; });
+  if (!ms.length) h += '<div class="empty">Hareket yok.</div>';
+  openSheet(c.name, h);
+}
+function clientForm(id){
+  const c = id ? D.clients.find(x => x.id === id) : {type:'Gerçek Kişi'};
+  const s = openSheet(id ? 'Müvekkili Düzenle' : 'Yeni Müvekkil', '<div class="card">' + F.text('cn', 'Ad soyad / ünvan', c.name || '') + F.sel('ct', 'Tür', D.clientTypes, c.type) + F.text('cp', 'Cep telefonu', c.phone || '') +
+    F.text('crn', '2. telefon – yakını (ad / yakınlık)', c.relName || '') + F.text('crp', '2. telefon', c.relPhone || '') + F.text('cc', 'E-posta / iletişim', c.contact || '') + F.area('cno', 'Not', (c.note || '').replace(/\s*·?\s*Site kodu: [^·;]+/, '')) + '</div><button class="btn" id="cok">Kaydet</button>');
+  s.querySelector('#cok').onclick = async () => { const r = await save('client/save', {id: id || '', name: V('cn'), type: V('ct'), phone: V('cp'), relName: V('crn'), relPhone: V('crp'), contact: V('cc'), note: V('cno')}); if (r && id) { if (sheetStack.length) sheetStack.pop().remove(); clientView(id); } };
+}
+function caseForm(kid, cid){
+  const k = kid ? D.cases.find(x => x.id === kid) : {kind:'Hukuk', status:'Devam ediyor'};
+  const s = openSheet(kid ? 'Dosya' : 'Yeni Dosya', '<div class="card">' + F.sel('kk', 'Tür', D.caseKinds, k.kind) + F.text('kc', 'Mahkeme / icra dairesi', k.court || '') + F.text('ke', 'Esas / dosya no', k.esas || '') +
+    F.text('kiu', 'Soruşturma birimi (ceza)', k.invUnit || '') + F.text('kin', 'Soruşturma no', k.invNo || '') + F.text('ks', 'Konu', k.subject || '') + F.num('kf', 'Anlaşılan ücret', amt(k.fee)) +
+    F.chips('kst', 'Durum', [['0','Devam ediyor'],['1','Kapandı']], [k.status === 'Kapandı' ? '1' : '0']) + F.area('kn', 'Not', k.note || '') + '</div><button class="btn" id="kok">Kaydet</button>');
+  s.querySelector('#kok').onclick = async () => { const r = await save('case/save', {id: kid || '', clientId: cid, kind: V('kk'), court: V('kc'), esas: V('ke'), invUnit: V('kiu'), invNo: V('kin'), subject: V('ks'), fee: V('kf'), closed: CH('kst')[0] === '1', note: V('kn')}); if (r) { if (sheetStack.length) sheetStack.pop().remove(); clientView(cid); } };
+}
+function moveForm(mid, cid){
+  const m = mid ? D.moves.find(x => x.id === mid) : {type:'Avans Alındı', date:D.today, toIncome:true};
+  const ks = D.cases.filter(k => k.clientId === cid);
+  const s = openSheet(mid ? 'Hareket' : 'Yeni Hareket', '<div class="card">' + F.sel('mt', 'Tür', D.mvTypes, m.type) + F.date('md', 'Tarih', m.date) + F.num('ma', 'Tutar (TL)', amt(m.cents)) +
+    F.sel('mc', 'Dosya', [['','(genel)']].concat(ks.map(k => [k.id, k.label])), m.caseId || '') + F.text('mds', 'Açıklama', m.desc || '') +
+    '<label class="f" id="mti"><input type="checkbox" id="mtoi"' + (m.toIncome ? ' checked' : '') + '> Ücreti Gelir\'e de işle (Dava / İcra Vekalet Ücreti)</label></div><button class="btn" id="mok">Kaydet</button>' + (mid ? '<button class="btn dan" id="mdel">Sil</button>' : ''));
+  const sync = () => s.querySelector('#mti').classList.toggle('hide', s.querySelector('#mt').value !== 'Ücret Alındı'); s.querySelector('#mt').onchange = sync; sync();
+  const back = async r => { if (r) { if (sheetStack.length) sheetStack.pop().remove(); clientView(cid); } };
+  s.querySelector('#mok').onclick = async () => back(await save('move/save', {id: mid || '', clientId: cid, type: V('mt'), date: V('md'), amount: V('ma'), caseId: V('mc'), desc: V('mds'), toIncome: s.querySelector('#mtoi').checked}));
+  if (mid) s.querySelector('#mdel').onclick = async () => { if (confirm('Hareket silinsin mi?')) back(await save('move/delete', {id: mid}, 'Silindi')); };
+}
+function entryForm(id, type){
+  const e = id ? D.entries.find(x => x.id === id) : {type: type || 'Gider', date: D.today};
+  const s = openSheet(id ? 'Kayıt' : (e.type === 'Gelir' ? 'Yeni Gelir' : 'Yeni Gider'), '<div class="card">' + F.chips('et', 'Tür', [['Gelir','Gelir'],['Gider','Gider']], [e.type]) + F.date('ed', 'Tarih', e.date) +
+    '<label class="f">Kategori</label><input class="in" id="ec" list="ecl" value="' + esc(e.category || '') + '"><datalist id="ecl"></datalist>' + F.num('ea', 'Tutar (TL)', amt(e.cents)) + F.text('eds', 'Açıklama', e.description || '') + '</div><button class="btn" id="eok">Kaydet</button>' + (id ? '<button class="btn dan" id="edel">Sil</button>' : ''));
+  const fill = () => { const t = CH('et')[0] || 'Gider'; s.querySelector('#ecl').innerHTML = (t === 'Gelir' ? D.catsIn : D.catsOut).map(c => '<option value="' + esc(c) + '">').join(''); };
+  s.querySelector('#et').onchipchange = fill; fill();
+  s.querySelector('#eok').onclick = () => save('entry/save', {id: id || '', type: CH('et')[0] || 'Gider', date: V('ed'), category: V('ec'), amount: V('ea'), description: V('eds')});
+  if (id) s.querySelector('#edel').onclick = () => { if (confirm('Kayıt silinsin mi?')) save('entry/delete', {id}, 'Silindi'); };
+}
+
+
+document.addEventListener('visibilitychange', () => { if (!document.hidden && D) load(true); });
+setInterval(() => { if (!document.hidden && D) load(true); }, 60000);
+start();
+</script>
+</body>
+</html>

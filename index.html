@@ -369,7 +369,7 @@ function jobCard(j){
   const ev = j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK';
   const at = ev && j.attend ? ' <span class="tg ' + attCls(j.attend) + '">' + esc(j.attend) + '</span>' : '';
   const miss = ev && j.done && !j.minutesFile ? '<div class="rt">● Tutanak eksik – dokunup ekleyin</div>' : '';
-  return '<div class="it ' + (late || miss ? 'r' : kc) + (j.done ? ' done' : '') + '" onclick="jobForm(\'' + j.id + '\')"><div class="tp"><span>' + '<span class="tg ' + kc + '">' + kn + (j.done ? ' ✓' : '') + '</span>' + at + '</span>' + d + '</div>' + miss +
+  return '<div class="it ' + (late || miss ? 'r' : kc) + (j.done && !miss ? ' done' : '') + '" onclick="jobForm(\'' + j.id + '\')"><div class="tp"><span>' + '<span class="tg ' + kc + '">' + kn + (j.done ? ' ✓' : '') + '</span>' + at + '</span>' + d + '</div>' + miss +
     '<div class="ttl">' + esc(j.title) + '</div>' + (j.file ? '<div class="mu">' + esc(j.file) + '</div>' : '') + (j.detail && !(ev && j.attend && j.detail.length <= 30) ? '<div class="mu" style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden">' + esc(j.detail) + '</div>' : '') +
     (j.done && j.doneNote ? '<div class="mu">✓ ' + esc(j.doneReason) + ': ' + esc(j.doneNote) + '</div>' : '') + '</div>';
 }
@@ -406,7 +406,8 @@ function vHome(){
     '<div class="k" onclick="st.icraSeg=\'alarm\';go(\'icra\')"><b>' + icOpen.length + '</b><span>açık icra · ' + icAl.length + ' süre alarmı</span></div>' +
     '<div class="k" onclick="st.icraSeg=\'emanet\';go(\'icra\')"><b>' + money(D.emanet) + '</b><span>emanet (aktarılmadı)</span></div></div>';
   const pastEv = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) < 0);
-  if (pastEv.length || late.length) { h += '<h2>Dikkat</h2>'; pastEv.forEach(j => h += jobCard(j)); late.forEach(j => h += jobCard(j)); }
+  const noMin = D.jobs.filter(j => j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && !j.minutesFile && j.date && days(j.date) >= -60);
+  if (pastEv.length || late.length || noMin.length) { h += '<h2>Dikkat</h2>'; pastEv.forEach(j => h += jobCard(j)); late.forEach(j => h += jobCard(j)); noMin.forEach(j => h += jobCard(j)); }
   const t2 = calItems(0, 1);
   h += '<h2>Bugün ve Yarın <small>' + fd(iso(today())) + '</small></h2>' + (t2.length ? t2.map(x => x.html).join('') : '<div class="empty">Kayıt yok.</div>');
   const w = calItems(2, 14);
@@ -443,7 +444,8 @@ function pdfList(kind, who){
   const ev = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) >= 0 && wf(j)).sort(byD);
   let t = '', b = '';
   if (kind === 'open') { t = 'Açık İşler';
-    [['Acil', open.filter(j => has(j,'ONCELIKLI'))], ['Süreli', open.filter(j => has(j,'SURELI'))], ['Normal', open.filter(j => !has(j,'ONCELIKLI') && !has(j,'SURELI') && !has(j,'TAKIP'))], ['Sürekli takip', open.filter(j => has(j,'TAKIP'))]]
+    const seen = new Set(), uq = l => l.filter(j => !seen.has(j.id) && seen.add(j.id));
+    [['Acil', uq(open.filter(j => has(j,'ONCELIKLI')))], ['Süreli', uq(open.filter(j => has(j,'SURELI')))], ['Normal', uq(open.filter(j => has(j,'NORMAL') || (!has(j,'TAKIP'))))], ['Sürekli takip', uq(open.filter(j => has(j,'TAKIP')))]]
       .forEach(x => b += '<h2>' + x[0] + ' (' + x[1].length + ')</h2>' + pdfRows(x[1].sort(byD), false)); }
   else if (kind === 'due') { t = 'Süreli İşler'; const l = open.filter(j => has(j,'SURELI')).sort(byD); b = '<h2>Son güne göre (' + l.length + ')</h2>' + pdfRows(l, false); }
   else if (kind === 'cal') { t = 'Duruşma ve Arabuluculuk'; const du = ev.filter(j => j.kind === 'TAKVIM'), md = ev.filter(j => j.kind === 'ARABULUCULUK');
@@ -475,13 +477,13 @@ function vJobs(){
 
 /* ---------- duruşma */
 function vCal(){
-  const segs = [['up','Yaklaşan'],['past','Sonucu girilmemiş'],['med','Arabuluculuk'],['done','Girilenler']];
+  const segs = [['up','Açık'],['past','Sonucu girilmemiş'],['med','Arabuluculuk'],['done','Geçmiş (kapananlar)']];
   let h = searchBox('cal', 'Ara: mahkeme, dosya, taraf…') + '<div class="seg">' + segs.map(s => '<button class="' + (st.calSeg === s[0] ? 'on' : '') + '" onclick="st.calSeg=\'' + s[0] + '\';render()">' + s[1] + '</button>').join('') + '</div>';
   let l = D.jobs.filter(j => j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK');
-  if (st.calSeg === 'up') l = l.filter(j => !j.done && (!j.date || days(j.date) >= 0));
+  if (st.calSeg === 'up') l = l.filter(j => (!j.done && (!j.date || days(j.date) >= 0)) || (j.done && !j.minutesFile));
   else if (st.calSeg === 'past') l = l.filter(j => !j.done && j.date && days(j.date) < 0);
-  else if (st.calSeg === 'med') l = l.filter(j => !j.done && j.kind === 'ARABULUCULUK');
-  else l = l.filter(j => j.done).reverse();
+  else if (st.calSeg === 'med') l = l.filter(j => (!j.done || !j.minutesFile) && j.kind === 'ARABULUCULUK');
+  else l = l.filter(j => j.done && j.minutesFile).sort((a, b) => ((b.date || '') + (b.time || '')).localeCompare((a.date || '') + (a.time || '')));
   l = l.filter(j => match(st.q.cal, j.title + ' ' + j.file + ' ' + j.detail));
   if (st.calSeg !== 'done') l.sort((a, b) => ((a.date || '') + (a.time || '')).localeCompare((b.date || '') + (b.time || '')));
   let last = '';
@@ -615,6 +617,8 @@ function doneForm(j){
     (med ? F.sel('dreason', 'Netice', D.medOutcomes, 'Anlaşma') : '');
   else h += F.sel('dreason', 'Sebep', D.doneReasons, 'İşlem yapıldı');
   h += F.area('dnote', ev ? (med ? 'Toplantı notu – ne konuşuldu, teklif, sonraki adım (zorunlu)' : 'Duruşma notu – ne oldu, ara karar, sonraki tarih (zorunlu)') : 'Not', '');
+  h += '<label class="f"><input type="checkbox" id="dexh" onchange="document.querySelector(\'.sheet.show #dexw\').classList.toggle(\'hide\', !this.checked)"> Ek yapılacak husus / yeni iş var</label><div id="dexw" class="hide">' +
+    F.area('dext', 'Her satır ayrı iş – "2 hafta", "10.11.2026", "cuma", "acil", "Mücahid" yazarsanız son gün / bölüm / sorumlu belirlenir', '') + '</div>';
   if (ev) h += F.file('dmin', med ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<div class="mu" style="margin-top:6px">Tutanak eklenmezse kayıt "tutanak eksik" olarak kırmızı kalır. Eklenen tutanağı bilgisayar okur, süreli ara kararları iş olarak ekler.</div>';
   h += '</div><button class="btn gr" id="dok">Kaydet</button>';
   const s = openSheet(ev ? 'Sonuç Gir' : 'Yapıldı', h);
@@ -622,13 +626,15 @@ function doneForm(j){
     const err = s.querySelector('.err');
     if (ev && !CH('dattend').length) { err.textContent = 'Katılım şeklini seçin'; return; }
     if (ev && !V('dnote')) { err.textContent = 'Not zorunlu'; return; }
+    const exh0 = s.querySelector('#dexh'); if (exh0 && exh0.checked && !V('dext')) { err.textContent = 'Ek yapılacak hususu yazın ya da işareti kaldırın'; return; }
     const fe = s.querySelector('#dmin'), f = fe && fe.files && fe.files[0];
     if (ev && !f && !confirm('Tutanak eklenmedi. Kayıt "tutanak eksik" olarak kalacak. Devam edilsin mi?')) return;
     try {
       if (f) { toast('Tutanak yükleniyor…'); await uploadAttach(j.id, f, 'minutes'); }
-      await send('job/done', {id: j.id, done: true, reason: V('dreason'), note: V('dnote'), attend: ev ? CH('dattend')[0] : '', by: ev ? V('dby') : ''});
+      const exh = s.querySelector('#dexh'), extra = exh && exh.checked ? V('dext') : '';
+      await send('job/done', {id: j.id, done: true, reason: V('dreason'), note: V('dnote') + (extra ? '\nEk yapılacak: ' + extra.replace(/\n+/g, ' / ') : ''), attend: ev ? CH('dattend')[0] : '', by: ev ? V('dby') : ''});
       toast('Kaydedildi · bilgisayara iletiliyor'); closeAll(); render();
-      if (med) followForm(j, V('dreason') || '');
+      followForm(j, med ? (V('dreason') || '') : '', ev ? CH('dattend')[0] : '', extra);
     } catch(e){ err.textContent = e.message; }
   };
 }
@@ -639,18 +645,44 @@ async function uploadAttach(jobId, file, role){
   if (!r.ok) throw new Error('Dosya yüklenemedi (' + r.status + ')');
   await send('job/attach', {id: jobId, role: role, file: fid, name: file.name});
 }
-function followForm(j, outcome){
+const WDN = ['pazar','pazartesi','salı','çarşamba','perşembe','cuma','cumartesi'];
+function noteJobs(j, txt){
+  const out = []; if (!txt) return out;
+  const ev = j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK', base = ev && j.kind === 'ARABULUCULUK' && j.file ? j.file + ' – arabuluculuk' : j.title + (j.file ? ' – ' + j.file : '');
+  const NW = {bir:1,iki:2,'üç':3,'dört':4,'beş':5,'altı':6,yedi:7,sekiz:8,dokuz:9,on:10,'onbeş':15,'on beş':15,yirmi:20,otuz:30};
+  txt.split(/\n+|;\s*/).forEach(line => {
+    const t = line.trim().replace(/^[-–•*\d.)\s]+/, ''); if (t.length < 3) return;
+    const low = t.toLocaleLowerCase('tr'); let due = null;
+    let m = t.match(/(\d{1,2})[./](\d{1,2})[./](\d{4})/); if (m) due = new Date(+m[3], +m[2] - 1, +m[1]);
+    if (!due) { m = low.match(/(?:^|[^\p{L}\d])(\d+|bir|iki|üç|dört|beş|altı|yedi|sekiz|dokuz|on beş|onbeş|on|yirmi|otuz)\s+(gün|hafta|ay)/u);
+      if (m) { const n = /^\d+$/.test(m[1]) ? +m[1] : NW[m[1]]; if (n) { try { due = pd(deadlineCalc(iso(today()), n, m[2], false).date); } catch(e){} } } }
+    if (!due && low.includes('yarın')) { due = new Date(today()); due.setDate(due.getDate() + 1); }
+    if (!due) for (let i = 0; i < 7; i++) if (new RegExp('(^|\\s)' + WDN[i] + '(\\s|$|[,.:\'’])').test(low)) { due = new Date(today()); do { due.setDate(due.getDate() + 1); } while (due.getDay() !== i); break; }
+    const acil = /acil|hemen|ivedi/.test(low);
+    const who = /mücahi[dt]/.test(low) ? 'Mücahid' : /faruk/.test(low) ? 'Faruk' : (j.assignee || 'Faruk');
+    let d = due ? iso(due) : ''; if (acil && !d) { const x = new Date(today()); x.setDate(x.getDate() + 1); d = iso(x); }
+    out.push({kind: acil ? 'ONCELIKLI' : due ? 'SURELI' : 'NORMAL', date: d, title: base, who: who, detail: t + '  (← ' + j.title + (ev ? ' ' + fd(j.date) : '') + ')'});
+  });
+  return out;
+}
+function followForm(j, outcome, attend, extra){
   const plus = n => { const d = new Date(today()); d.setDate(d.getDate() + n); return iso(d); };
   const t = j.file ? j.file + ' – arabuluculuk' : j.title, dt = fd(j.date);
-  const L = [];
+  const L = noteJobs(j, extra || '');
   if (outcome === 'Anlaşma' || outcome === 'Kısmen anlaşma') L.push({kind:'NORMAL', date: plus(7), title: t, detail: 'Arabuluculuk anlaşma belgesi (' + dt + ') – ödeme / edim takvimi takip edilecek; müvekkile bilgi verilecek; gerekirse icra edilebilirlik şerhi alınacak.'});
-  if (outcome === 'Anlaşmama' || outcome === 'Kısmen anlaşma') L.push({kind:'SURELI', date: plus(14), title: t, detail: 'Arabuluculuk son tutanağı (' + outcome.toLocaleLowerCase('tr') + ', ' + dt + ') – ' + (outcome === 'Kısmen anlaşma' ? 'anlaşılamayan kısım için ' : '') + 'dava açılacak. Dava açma süresini dosyaya göre kontrol edin.'});
+  const med = j.kind === 'ARABULUCULUK', tt = med ? t : j.title + (j.file ? ' – ' + j.file : '');
+  if (!med && attend === 'Takipsiz bırak') { const d = pd(j.date) || new Date(today()); d.setMonth(d.getMonth() + 3); L.push({kind:'SURELI', date: iso(d), title: tt, detail: 'Duruşma (' + dt + ') takipsiz bırakıldı – dosya işlemden kaldırıldıysa 3 ay içinde yenilenmezse dava açılmamış sayılır (HMK 150). Talimat: yenilensin mi?'}); }
+  if (!med && attend === 'Mazeret') L.push({kind:'ONCELIKLI', date: plus(2), title: tt, detail: 'Duruşma (' + dt + ') için mazeret bildirildi – mazeretin kabulü ve yeni duruşma tarihi UYAP\'tan kontrol edilecek.'});
+  if (!med && attend === 'Tevkil') L.push({kind:'NORMAL', date: plus(3), title: tt, detail: 'Tevkil edilen avukattan (' + dt + ') duruşma notu ve zabıt alınacak.'});
+  if (med && outcome && outcome !== 'Anlaşma' && outcome !== 'Ertelendi') L.push({kind:'ONCELIKLI', date: plus(7), title: t, who:'Faruk', detail: 'TALİMAT: Arabuluculuk sonucu (' + outcome + ', ' + dt + ') – dava açılsın mı, takipsiz bırakılsın mı, bekletilsin mi? Karar bu işe not olarak yazılacak.'});
+  if (outcome === 'Anlaşmama' || outcome === 'Kısmen anlaşma') L.push({off:true, kind:'SURELI', date: plus(14), title: t, detail: 'Arabuluculuk son tutanağı (' + outcome.toLocaleLowerCase('tr') + ', ' + dt + ') – ' + (outcome === 'Kısmen anlaşma' ? 'anlaşılamayan kısım için ' : '') + 'dava açılacak (talimat "dava" ise). Dava açma süresini dosyaya göre kontrol edin.'});
   if (outcome === 'Vazgeçme') L.push({kind:'NORMAL', date: plus(7), title: t, detail: 'Arabuluculuktan vazgeçildi (' + dt + ') – müvekkile bilgi verilecek, dosya kapatılacak / sonraki adım belirlenecek.'});
   if (outcome === 'Ertelendi') L.push({kind:'ARABULUCULUK', date: '', title: j.title, file: j.file, detail: 'Ertelenen toplantı – önceki: ' + dt});
   if (!L.length) return;
-  let h = '<div class="mu" style="margin:0 4px 6px">Netice: <b>' + esc(outcome) + '</b> – önerilen takip işleri. İstemediğinizi işaretten çıkarın.</div>';
-  L.forEach((x, i) => h += '<div class="card"><label class="f"><input type="checkbox" id="fon' + i + '" checked> ' + ({SURELI:'Süreli iş',NORMAL:'Normal iş',ARABULUCULUK:'Yeni toplantı'})[x.kind] + '</label>' + F.text('ft' + i, 'Başlık', x.title) + F.date('fd' + i, x.kind === 'ARABULUCULUK' ? 'Toplantı tarihi' : 'Son gün / tarih', x.date) +
-    (x.kind === 'ARABULUCULUK' ? F.time('fh' + i, 'Saat', '') : '') + F.sel('fw' + i, 'Sorumlu', D.owners, j.assignee || 'Faruk') + F.area('fx' + i, 'Açıklama', x.detail) + '</div>');
+  const nx = noteJobs(j, extra || '').length;
+  let h = (nx ? '<div class="mu" style="margin:0 4px 6px">Notunuzdan <b>' + nx + '</b> iş çıkarıldı – tarih, bölüm ve sorumluyu kontrol edin.</div>' : '') + '<div class="mu" style="margin:0 4px 6px">' + (outcome ? 'Netice: <b>' + esc(outcome) + '</b> – ' : (attend ? 'Katılım: <b>' + esc(attend) + '</b> – ' : '')) + 'önerilen takip işleri. İstemediğinizi işaretten çıkarın.</div>';
+  L.forEach((x, i) => h += '<div class="card"><label class="f"><input type="checkbox" id="fon' + i + '"' + (x.off ? '' : ' checked') + '> ' + ({SURELI:'Süreli iş',NORMAL:'Normal iş',ONCELIKLI:'Acil iş',ARABULUCULUK:'Yeni toplantı'})[x.kind] + '</label>' + F.text('ft' + i, 'Başlık', x.title) + F.date('fd' + i, x.kind === 'ARABULUCULUK' ? 'Toplantı tarihi' : 'Son gün / tarih', x.date) +
+    (x.kind === 'ARABULUCULUK' ? F.time('fh' + i, 'Saat', '') : '') + F.sel('fw' + i, 'Sorumlu', D.owners, x.who || j.assignee || 'Faruk') + F.area('fx' + i, 'Açıklama', x.detail) + '</div>');
   h += '<button class="btn" id="fok">Seçilenleri ekle</button>';
   const s = openSheet('Takip İşleri', h);
   s.querySelector('#fok').onclick = async () => {

@@ -31,7 +31,17 @@ h2{font-size:17px;color:var(--m);margin:18px 4px 8px;display:flex;justify-conten
 h2 small{color:var(--mu);font-weight:500;font-size:12px}
 h3{font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin:14px 4px 6px}
 .kp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.k{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:10px 12px}
+.k{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:10px 12px;position:relative;cursor:pointer}
+.pdfb{position:absolute;top:8px;right:8px;border:1px solid var(--ln);background:#faf8f6;color:#582a2a;border-radius:8px;font:700 11px -apple-system,sans-serif;padding:4px 8px}
+#pv{position:fixed;inset:0;background:#fff;z-index:9999;overflow:auto;-webkit-overflow-scrolling:touch}
+#pv .pvbar{position:sticky;top:0;display:flex;gap:8px;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;background:#582a2a;color:#fff}
+#pv .pvbar button{background:#fff;color:#582a2a;border:0;border-radius:9px;padding:8px 12px;font-weight:700}
+#pv .pvb{padding:14px 16px 40px;font-size:13px;color:#1f2328}
+#pv h1{font-size:18px;color:#582a2a;margin:4px 0}#pv h2{font-size:14px;color:#582a2a;border-bottom:2px solid #582a2a;padding-bottom:4px;margin:18px 0 6px}
+#pv table{width:100%;border-collapse:collapse;font-size:12px}#pv th{text-align:left;font-size:10px;color:#6c7278;text-transform:uppercase;border-bottom:1px solid #e4e2df;padding:5px 4px}#pv td{border-bottom:1px solid #f0eeeb;padding:6px 4px;vertical-align:top}
+#pv .pr{border-bottom:1px solid #ece9e5;padding:7px 0;page-break-inside:avoid}#pv .pm{font-size:11.5px;color:#6c7278;margin-bottom:2px}#pv .pd{color:#3b3f44;margin-top:2px}
+#pv .red{color:#b2323e;font-weight:700}#pv .or{color:#be6818;font-weight:700}#pv .mu{color:#6c7278}
+@media print{body>*:not(#pv){display:none!important}#pv{position:static;overflow:visible}#pv .pvbar{display:none}@page{size:A4;margin:12mm}}
 .k b{display:block;font-size:21px}.k span{font-size:12px;color:var(--mu)}
 .it{background:#fff;border:1px solid var(--ln);border-left:4px solid var(--fa);border-radius:13px;padding:10px 12px;margin:7px 0}
 .it:active{background:#faf8f5}
@@ -208,7 +218,7 @@ async function flush(){
 }
 function opLabel(op, b){
   const t = {'job/save':'İş / duruşma: ' + (b.title || ''), 'job/done':'Yapıldı / sonuç', 'job/delete':'İş silme', 'icra/save':'İcra: ' + (b.office || '') + ' ' + (b.no || ''), 'icra/tahsilat':'Tahsilat ' + (b.amount || '') + ' TL', 'icra/tahsilat/delete':'Tahsilat silme',
-    'icra/tahsilat/transfer':'Emanet aktarımı', 'icra/haciz':'Haciz: ' + (b.type || ''), 'icra/haciz/delete':'Haciz silme', 'icra/delete':'İcra dosyası silme', 'maas/save':'Maaş haczi: ' + (b.person || ''), 'client/save':'Müvekkil: ' + (b.name || ''),
+    'icra/tahsilat/transfer':'Emanet aktarımı', 'icra/haciz':'Haciz: ' + (b.type || ''), 'icra/haciz/delete':'Haciz silme', 'icra/delete':'İcra dosyası silme', 'icra/close':'İcra dosyası kapatma', 'maas/save':'Maaş haczi: ' + (b.person || ''), 'client/save':'Müvekkil: ' + (b.name || ''),
     'case/save':'Dosya: ' + (b.court || '') + ' ' + (b.esas || ''), 'move/save':(b.type || 'Hareket') + ' ' + (b.amount || '') + ' TL', 'move/delete':'Hareket silme', 'entry/save':(b.type || '') + ': ' + (b.category || '') + ' ' + (b.amount || '') + ' TL', 'entry/delete':'Kasa kaydı silme'}[op];
   return t || op;
 }
@@ -264,6 +274,7 @@ function applyLocal(op, b){
     else if (op === 'icra/haciz') { const f = D.icra.find(x => x.id === b.fileId); if (f && !f.haciz.some(h => h.id === b.newId)) f.haciz.push({id: b.newId, type: b.type, date: b.date || '', note: b.note || ''}); }
     else if (op === 'icra/haciz/delete') { for (const f of D.icra) f.haciz = f.haciz.filter(x => x.id !== b.id); }
     else if (op === 'icra/delete') D.icra = D.icra.filter(x => x.id !== b.id);
+    else if (op === 'icra/close') { const f = D.icra.find(x => x.id === b.id); if (f) { f.stage = 'Kapandı'; f.closedDate = b.date || ''; f.closeNote = b.note || ''; f.nextStep = ''; f.nextDate = ''; f.alarms = []; f.level = 'g'; if (b.date) { f.lastAction = b.date; f.last = b.date; } } }
     else if (op === 'maas/save') { const old = D.maas.find(x => x.id === b.id) || {}; upsert(D.maas, Object.assign({}, old, b, {siteName: siteNameOf(b.site), monthly: parseTL(b.monthly), sent: parseTL(b.sent), debt: parseTL(b.debt), status: old.status || '', alarm: old.alarm || ''})); }
     else if (op === 'client/save') { const old = D.clients.find(x => x.id === b.id) || {balance: 0, feeGot: 0, agreed: 0, site: ''}; upsert(D.clients, Object.assign({}, old, b)); }
     else if (op === 'case/save') upsert(D.cases, {id: b.id, clientId: b.clientId, kind: b.kind, court: b.court, esas: b.esas, invUnit: b.invUnit, invNo: b.invNo, subject: b.subject, status: b.closed ? 'Kapandı' : 'Devam ediyor', note: b.note, fee: parseTL(b.fee),
@@ -380,8 +391,13 @@ function vHome(){
   const ev7 = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) >= 0 && days(j.date) <= 7);
   const icOpen = D.icra.filter(f => f.stage !== 'Kapandı');
   const icAl = icOpen.filter(f => f.alarms.some(a => a.kind !== 'işlemsiz' && a.kind !== 'tebligat' && a.kind !== 'itiraz'));
-  let h = pendingCard() + '<div class="kp"><div class="k" onclick="st.jobSeg=\'all\';go(\'jobs\')"><b>' + open.length + '</b><span>açık iş · ' + due.length + ' süreli' + (late.length ? ' · <span class="rt">' + late.length + ' geçmiş</span>' : '') + '</span></div>' +
-    '<div class="k" onclick="go(\'cal\')"><b>' + ev7.length + '</b><span>7 günde duruşma / toplantı</span></div>' +
+  const evUp = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) >= 0);
+  const n7 = next7Jobs().length;
+  const pb = k => '<button class="pdfb" onclick="event.stopPropagation();pdfPick(\'' + k + '\')">PDF</button>';
+  let h = pendingCard() + '<div class="kp"><div class="k" onclick="st.jobSeg=\'all\';go(\'jobs\')">' + pb('open') + '<b>' + open.length + '</b><span>açık iş</span></div>' +
+    '<div class="k" onclick="st.jobSeg=\'SURELI\';go(\'jobs\')">' + pb('due') + '<b>' + due.length + '</b><span>süreli iş' + (late.length ? ' · <span class="rt">' + late.length + ' geçmiş</span>' : '') + '</span></div>' +
+    '<div class="k" onclick="st.calSeg=\'up\';go(\'cal\')">' + pb('cal') + '<b>' + evUp.length + '</b><span>duruşma / arabuluculuk</span></div>' +
+    '<div class="k" onclick="st.calSeg=\'up\';go(\'cal\')">' + pb('n7') + '<b>' + n7 + '</b><span>önümüzdeki 7 gün</span></div>' +
     '<div class="k" onclick="st.icraSeg=\'alarm\';go(\'icra\')"><b>' + icOpen.length + '</b><span>açık icra · ' + icAl.length + ' süre alarmı</span></div>' +
     '<div class="k" onclick="st.icraSeg=\'emanet\';go(\'icra\')"><b>' + money(D.emanet) + '</b><span>emanet (aktarılmadı)</span></div></div>';
   const pastEv = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) < 0);
@@ -396,6 +412,48 @@ function vHome(){
   if (pri.length) { h += '<h2>Acil İşler</h2>'; pri.forEach(j => h += jobCard(j)); }
   h += '<button class="btn sec" onclick="deadlineForm()">Süre Hesapla</button>';
   $('#main').innerHTML = h;
+}
+
+/* ---------- yazdırılabilir listeler (PDF) */
+function next7Jobs(){ return D.jobs.filter(j => !j.done && j.date && ((j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') ? days(j.date) >= 0 && days(j.date) <= 7 : has(j,'SURELI') && days(j.date) <= 7)).sort((a, b) => ((a.date || '') + (a.time || '')).localeCompare((b.date || '') + (b.time || ''))); }
+function pdfRows(l, withKind){
+  if (!l.length) return '<p class="mu">Kayıt yok.</p>';
+  return l.map((j, i) => {
+    const n = j.date ? days(j.date) : null, cls = n === null ? '' : n <= 3 ? 'red' : n <= 7 ? 'or' : '';
+    return '<div class="pr"><div class="pm"><span class="' + cls + '">' + (i + 1) + '. ' + (j.date ? fd(j.date) + (j.time ? ' ' + esc(j.time) : '') + ' · ' + esc(rel(j.date)) : 'tarih yok') + '</span>' +
+      (withKind ? ' · ' + jobKind(j)[0] : '') + ' · Sorumlu: ' + esc(j.assignee || '—') + '</div><div><b>' + esc(j.title) + '</b>' + (j.file ? ' <span class="mu">– ' + esc(j.file) + '</span>' : '') + '</div>' +
+      (j.detail ? '<div class="pd">' + esc(j.detail) + '</div>' : '') + '</div>'; }).join('');
+}
+function datSuf(w){ const v = (w.toLocaleLowerCase('tr').match(/[aeıioöuü]/g) || ['a']).pop(); return 'aıou'.includes(v) ? 'a' : 'e'; }
+function pdfPick(kind){
+  const who = ['Faruk','Mücahid'];
+  const s = openSheet('PDF – kimin işleri?', '<div class="card"><button class="btn" id="pw0">Tüm işler</button>' + who.map((w, i) => '<button class="btn sec" id="pw' + (i + 1) + '">Yalnız ' + w + '\'' + datSuf(w) + ' atananlar</button>').join('') + '</div>');
+  s.querySelector('#pw0').onclick = () => { closeSheet(); pdfList(kind, ''); };
+  who.forEach((w, i) => s.querySelector('#pw' + (i + 1)).onclick = () => { closeSheet(); pdfList(kind, w); });
+}
+function pdfList(kind, who){
+  const wf = j => !who || (j.assignee || 'Faruk') === who;
+  const open = D.jobs.filter(j => !j.done && j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK' && wf(j));
+  const byD = (a, b) => ((a.date || '9999') + (a.time || '')).localeCompare((b.date || '9999') + (b.time || ''));
+  const ev = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) >= 0 && wf(j)).sort(byD);
+  let t = '', b = '';
+  if (kind === 'open') { t = 'Açık İşler';
+    [['Acil', open.filter(j => has(j,'ONCELIKLI'))], ['Süreli', open.filter(j => has(j,'SURELI'))], ['Normal', open.filter(j => !has(j,'ONCELIKLI') && !has(j,'SURELI') && !has(j,'TAKIP'))], ['Sürekli takip', open.filter(j => has(j,'TAKIP'))]]
+      .forEach(x => b += '<h2>' + x[0] + ' (' + x[1].length + ')</h2>' + pdfRows(x[1].sort(byD), false)); }
+  else if (kind === 'due') { t = 'Süreli İşler'; const l = open.filter(j => has(j,'SURELI')).sort(byD); b = '<h2>Son güne göre (' + l.length + ')</h2>' + pdfRows(l, false); }
+  else if (kind === 'cal') { t = 'Duruşma ve Arabuluculuk'; const du = ev.filter(j => j.kind === 'TAKVIM'), md = ev.filter(j => j.kind === 'ARABULUCULUK');
+    b = '<h2>Duruşmalar (' + du.length + ')</h2>' + pdfRows(du, false) + '<h2>Arabuluculuk (' + md.length + ')</h2>' + pdfRows(md, false); }
+  else { t = 'Önümüzdeki 7 Gün'; const l = next7Jobs().filter(wf); const late = l.filter(j => days(j.date) < 0);
+    if (late.length) b += '<h2>Süresi geçmiş (' + late.length + ')</h2>' + pdfRows(late, true);
+    for (let d = 0; d <= 7; d++) { const x = l.filter(j => days(j.date) === d); if (!x.length) continue; const dt = new Date(today()); dt.setDate(dt.getDate() + d);
+      b += '<h2>' + dayLab(iso(dt)) + ' (' + x.length + ')</h2>' + pdfRows(x, true); }
+    if (!l.length) b = '<p class="mu">Önümüzdeki 7 günde kayıt yok.</p>'; }
+  if (who) t += ' – ' + who;
+  const pv = document.createElement('div'); pv.id = 'pv';
+  pv.innerHTML = '<div class="pvbar"><button onclick="document.getElementById(\'pv\').remove()">‹ Kapat</button><b>' + t + '</b><button onclick="window.print()">Yazdır / PDF</button></div>' +
+    '<div class="pvb"><h1>' + t.toLocaleUpperCase('tr') + '</h1><div class="mu">' + fd(iso(today())) + ' itibarıyla · bilgisayar verisi: ' + esc(D.now) + ' · Mürekkep Hukuk Bürosu</div>' + b + '</div>';
+  const old = document.getElementById('pv'); if (old) old.remove();
+  document.body.appendChild(pv);
 }
 
 /* ---------- işler */
@@ -574,7 +632,9 @@ function icraView(id){
     (f.fee ? '<span>Vekalet ücreti</span><div>' + money(f.fee) + '</div>' : '') + '<span>Son işlem</span><div>' + fd(f.last) + '</div>' + (f.nextStep ? '<span>Sonraki adım</span><b>' + esc(f.nextStep) + (f.nextDate ? ' – ' + fd(f.nextDate) : '') + '</b>' : '') +
     (f.objServed ? '<span>İtiraz tebliği</span><div>' + fd(f.objServed) + '</div>' : '') + (f.owner ? '<span>Sorumlu</span><div>' + esc(f.owner) + '</div>' : '') + '</div>' +
     (f.alarms.length ? '<div style="margin-top:8px">' + f.alarms.map(a => '<div class="' + (a.sev === 'r' ? 'rt' : 'ot') + '">● ' + esc(a.text) + '</div>').join('') + '</div>' : '') + '</div>';
+  if (f.stage === 'Kapandı') h += '<div class="card"><b>Dosya kapalı</b>' + (f.closedDate ? ' – ' + fd(f.closedDate) : '') + (f.closeNote ? '<div class="mu">' + esc(f.closeNote) + '</div>' : '') + '</div>';
   h += '<div class="row"><button class="btn" onclick="icraForm(\'' + f.id + '\')">Düzenle</button><button class="btn sec" onclick="icraTouch(\'' + f.id + '\')">Son işlem: bugün</button></div>';
+  h += f.stage === 'Kapandı' ? '<button class="btn sec" onclick="icraReopen(\'' + f.id + '\')">Dosyayı yeniden aç</button>' : '<button class="btn sec" onclick="icraCloseForm(\'' + f.id + '\')">Dosyayı kapat</button>';
   h += '<h2>Tahsilatlar <small>' + f.tah.length + '</small></h2>';
   f.tah.forEach(t => { const main = t.kind === 'Asıl alacak';
     h += '<div class="it ' + (main ? (t.transferred ? 'g' : 'r') : t.kind === 'Vekalet ücreti' ? 'o' : 'b') + '"><div class="tp"><b>' + money(t.cents) + '</b><span class="dt">' + fd(t.date) + '</span></div><div class="mu">' + esc(t.kind) + (t.note ? ' · ' + esc(t.note) : '') + '</div>' +
@@ -588,6 +648,15 @@ function icraView(id){
   openSheet(f.office + ' ' + f.no, h);
 }
 async function icraTouch(id){ const f = D.icra.find(x => x.id === id); try { await api('icra/save', Object.assign(icraBody(f), {lastAction: D.today})); toast('Son işlem bugün'); refreshSheet(() => icraView(id)); } catch(e){ toast(e.message); } }
+const CLOSE_R = ['Haricen tahsil edildi','İnfazen tahsil edildi (dosya kapandı)','Borçlu ödedi – kapak hesabı yapıldı','Takipten vazgeçildi','Müvekkil talimatıyla kapatıldı','Diğer'];
+function icraCloseForm(id){
+  const f = D.icra.find(x => x.id === id);
+  const s = openSheet('Dosyayı Kapat', '<div class="card"><div class="mu">' + esc(f.office + ' ' + f.no + ' · ' + f.debtor) + '</div>' + F.date('cd', 'Kapanış tarihi', D.today) + F.sel('cr', 'Kapanış sebebi', CLOSE_R, f.stage === 'İnfazen tahsil (kapatılacak)' ? CLOSE_R[1] : CLOSE_R[0]) + F.text('cn', 'Kapanış notu (isteğe bağlı)', '') +
+    '<div class="mu" style="margin-top:8px">Kapanan dosya alarm, sonraki adım ve takvim kaydı üretmez.</div></div><button class="btn" id="cok">Dosyayı kapat</button>');
+  s.querySelector('#cok').onclick = async () => { const r = V('cr'), n = V('cn'); if (!V('cd')) { s.querySelector('.err').textContent = 'Kapanış tarihini girin'; return; }
+    try { await api('icra/close', {id: id, date: V('cd'), note: r === 'Diğer' ? n : r + (n ? ' – ' + n : '')}); toast('Dosya kapatıldı'); closeSheet(); refreshSheet(() => icraView(id)); } catch(e){ s.querySelector('.err').textContent = e.message; } };
+}
+async function icraReopen(id){ if (!confirm('Dosya yeniden açılsın mı?')) return; const f = D.icra.find(x => x.id === id); try { await api('icra/save', Object.assign(icraBody(f), {stage: D.stages[0]})); f.closedDate = ''; f.closeNote = ''; toast('Yeniden açıldı'); refreshSheet(() => icraView(id)); } catch(e){ toast(e.message); } }
 function icraBody(f){ return {id:f.id, site:f.site, client:f.clientRaw, role:f.role, office:f.office, no:f.no, type:f.type, creditor:f.creditor, debtor:f.debtor, block:f.block, flat:f.flat, occupant:f.occupant, start:f.start, amount:amt(f.amount), fee:amt(f.fee), stage:f.stage, group:f.group, objServed:f.objServed, court:f.court, lastAction:f.lastAction, nextStep:f.nextStep, nextDate:f.nextDate, owner:f.owner, fcNote:f.fcNote, officeNote:f.officeNote, claimDesc:f.claimDesc, feeAsked:f.feeAsked, feeGot:f.feeGot, feeGotAmount:amt(f.feeGotAmount)}; }
 async function tahTr(id, on){ try { await api('icra/tahsilat/transfer', {id: id, date: on ? D.today : ''}); toast(on ? 'Aktarıldı' : 'Geri alındı'); const f = D.icra.find(x => x.tah.some(t => t.id === id)); refreshSheet(() => icraView(f.id)); } catch(e){ toast(e.message); } }
 async function tahDel(id){ if (!confirm('Tahsilat silinsin mi? (Bağlı gelir / masraf kaydı da silinir)')) return; const f = D.icra.find(x => x.tah.some(t => t.id === id)); try { await api('icra/tahsilat/delete', {id}); toast('Silindi'); refreshSheet(() => icraView(f.id)); } catch(e){ toast(e.message); } }

@@ -218,7 +218,7 @@ async function flush(){
 }
 function opLabel(op, b){
   const t = {'job/save':'İş / duruşma: ' + (b.title || ''), 'job/done':'Yapıldı / sonuç', 'job/delete':'İş silme', 'icra/save':'İcra: ' + (b.office || '') + ' ' + (b.no || ''), 'icra/tahsilat':'Tahsilat ' + (b.amount || '') + ' TL', 'icra/tahsilat/delete':'Tahsilat silme',
-    'icra/tahsilat/transfer':'Emanet aktarımı', 'icra/haciz':'Haciz: ' + (b.type || ''), 'icra/haciz/delete':'Haciz silme', 'icra/delete':'İcra dosyası silme', 'icra/close':'İcra dosyası kapatma', 'maas/save':'Maaş haczi: ' + (b.person || ''), 'client/save':'Müvekkil: ' + (b.name || ''),
+    'icra/tahsilat/transfer':'Emanet aktarımı', 'icra/haciz':'Haciz: ' + (b.type || ''), 'icra/haciz/delete':'Haciz silme', 'icra/delete':'İcra dosyası silme', 'job/attach':'Dosya: ' + (b.name || ''), 'icra/close':'İcra dosyası kapatma', 'maas/save':'Maaş haczi: ' + (b.person || ''), 'client/save':'Müvekkil: ' + (b.name || ''),
     'case/save':'Dosya: ' + (b.court || '') + ' ' + (b.esas || ''), 'move/save':(b.type || 'Hareket') + ' ' + (b.amount || '') + ' TL', 'move/delete':'Hareket silme', 'entry/save':(b.type || '') + ': ' + (b.category || '') + ' ' + (b.amount || '') + ' TL', 'entry/delete':'Kasa kaydı silme'}[op];
   return t || op;
 }
@@ -263,9 +263,10 @@ function applyLocal(op, b){
   if (!D) return;
   try {
     if (op === 'job/save') { const ev = b.kind === 'TAKVIM' || b.kind === 'ARABULUCULUK'; const tags = b.tags || []; const k = ev ? b.kind : tags[0];
-      upsert(D.jobs, {id: b.id, kind: k, tags: ev ? [] : tags.filter(t => t !== k), date: b.date || '', time: b.time || '', title: b.title, file: b.file || '', detail: b.detail || '', assignee: b.assignee || 'Faruk', done: (D.jobs.find(x => x.id === b.id) || {}).done || false, att: (D.jobs.find(x => x.id === b.id) || {}).att || 0}); }
-    else if (op === 'job/done') { const j = D.jobs.find(x => x.id === b.id); if (j) { j.done = !!b.done; j.doneNote = b.done ? b.note || '' : ''; j.doneReason = b.done ? (b.reason || (j.kind === 'TAKVIM' ? 'Duruşmaya girildi' : 'İşlem yapıldı')) : ''; j.doneAt = b.done ? new Date().toISOString().slice(0, 16) : ''; } }
+      upsert(D.jobs, {id: b.id, kind: k, tags: ev ? [] : tags.filter(t => t !== k), date: b.date || '', time: b.time || '', title: b.title, file: b.file || '', detail: b.detail || '', assignee: b.assignee || 'Faruk', attend: ev ? (b.attend || '') : '', done: (D.jobs.find(x => x.id === b.id) || {}).done || false, att: (D.jobs.find(x => x.id === b.id) || {}).att || 0}); }
+    else if (op === 'job/done') { const j = D.jobs.find(x => x.id === b.id); if (j) { if (b.attend) j.attend = b.attend; if (b.by) j.doneBy = b.by; j.done = !!b.done; j.doneNote = b.done ? b.note || '' : ''; j.doneReason = b.done ? (b.reason || (j.kind === 'TAKVIM' ? 'Duruşmaya girildi' : 'İşlem yapıldı')) : ''; j.doneAt = b.done ? new Date().toISOString().slice(0, 16) : ''; } }
     else if (op === 'job/delete') D.jobs = D.jobs.filter(x => x.id !== b.id);
+    else if (op === 'job/attach') { const j = D.jobs.find(x => x.id === b.id); if (j) { if (b.role === 'minutes') j.minutesFile = b.name; else if (b.role === 'form') j.formFile = b.name; else j.att = (j.att || 0) + 1; } }
     else if (op === 'icra/save') { const old = D.icra.find(x => x.id === b.id) || {alarms: [], haciz: [], tah: [], level: 'g'};
       upsert(D.icra, Object.assign({}, old, b, {client: b.site ? siteNameOf(b.site) : b.client, clientRaw: b.site ? '' : b.client, amount: parseTL(b.amount), fee: parseTL(b.fee), feeGotAmount: parseTL(b.feeGotAmount), last: b.lastAction || old.last || '', alarms: old.alarms || [], haciz: old.haciz || [], tah: old.tah || [], level: old.level || 'g'})); }
     else if (op === 'icra/tahsilat') { const f = D.icra.find(x => x.id === b.fileId); if (f && !f.tah.some(t => t.id === b.newId)) { const c = parseTL(b.amount); f.tah.push({id: b.newId, date: b.date, kind: b.kind, cents: c, note: b.note || '', transferred: ''}); if (b.kind === 'Asıl alacak') D.emanet += c; } }
@@ -360,12 +361,16 @@ const match = (q, s) => { q = up(q).trim(); if (q.length < 2) return true; const
 /* ---------- kartlar */
 const jobKind = j => j.kind === 'TAKVIM' ? ['Duruşma','b'] : j.kind === 'ARABULUCULUK' ? ['Arabuluculuk','p'] : has(j,'ONCELIKLI') ? ['Acil','r'] : has(j,'SURELI') ? ['Süreli','o'] : has(j,'TAKIP') ? ['Takip','g'] : ['İş','m'];
 const has = (j, k) => j.kind === k || (j.tags || []).includes(k);
+const attCls = a => ({'Fiziki katılım':'b','E-duruşma':'g','Telekonferans':'g','Tevkil':'p','Mazeret':'o','Takipsiz bırak':'r'})[a] || 'm';
 function jobCard(j){
   const [kn, kc] = jobKind(j);
   const d = j.date ? '<span class="dt">' + dayLab(j.date) + (j.time ? ' · ' + esc(j.time) : '') + '</span>' : '';
   const late = !j.done && j.date && days(j.date) < 0;
-  return '<div class="it ' + (late ? 'r' : kc) + (j.done ? ' done' : '') + '" onclick="jobForm(\'' + j.id + '\')"><div class="tp"><span class="tg ' + kc + '">' + kn + (j.done ? ' ✓' : '') + '</span>' + d + '</div>' +
-    '<div class="ttl">' + esc(j.title) + '</div>' + (j.file ? '<div class="mu">' + esc(j.file) + '</div>' : '') + (j.detail ? '<div class="mu" style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden">' + esc(j.detail) + '</div>' : '') +
+  const ev = j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK';
+  const at = ev && j.attend ? ' <span class="tg ' + attCls(j.attend) + '">' + esc(j.attend) + '</span>' : '';
+  const miss = ev && j.done && !j.minutesFile ? '<div class="rt">● Tutanak eksik – dokunup ekleyin</div>' : '';
+  return '<div class="it ' + (late || miss ? 'r' : kc) + (j.done ? ' done' : '') + '" onclick="jobForm(\'' + j.id + '\')"><div class="tp"><span>' + '<span class="tg ' + kc + '">' + kn + (j.done ? ' ✓' : '') + '</span>' + at + '</span>' + d + '</div>' + miss +
+    '<div class="ttl">' + esc(j.title) + '</div>' + (j.file ? '<div class="mu">' + esc(j.file) + '</div>' : '') + (j.detail && !(ev && j.attend && j.detail.length <= 30) ? '<div class="mu" style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden">' + esc(j.detail) + '</div>' : '') +
     (j.done && j.doneNote ? '<div class="mu">✓ ' + esc(j.doneReason) + ': ' + esc(j.doneNote) + '</div>' : '') + '</div>';
 }
 function icraCard(f, extra){
@@ -562,6 +567,7 @@ const F = {
   time: (id, lab, v) => '<label class="f">' + lab + '</label><input class="in" type="time" id="' + id + '" value="' + esc(v || '') + '">',
   area: (id, lab, v) => '<label class="f">' + lab + '</label><textarea class="in" id="' + id + '">' + esc(v) + '</textarea>',
   sel: (id, lab, opts, v) => '<label class="f">' + lab + '</label><select class="in" id="' + id + '">' + opts.map(o => { const [val, tx] = Array.isArray(o) ? o : [o, o]; return '<option value="' + esc(val) + '"' + (val === v ? ' selected' : '') + '>' + esc(tx) + '</option>'; }).join('') + '</select>',
+  file: (id, lab) => '<label class="f">' + lab + '</label><input class="in" type="file" id="' + id + '">',
   chips: (id, lab, opts, vals, multi) => '<label class="f">' + lab + '</label><div class="chk" id="' + id + '" data-multi="' + (multi ? 1 : 0) + '">' + opts.map(o => { const [val, tx] = Array.isArray(o) ? o : [o, o]; return '<button type="button" data-v="' + esc(val) + '" class="' + (vals.includes(val) ? 'on' : '') + '" onclick="chip(this)">' + esc(tx) + '</button>'; }).join('') + '</div>'
 };
 function chip(b){ const p = b.parentNode; if (p.dataset.multi !== '1') p.querySelectorAll('button').forEach(x => x !== b && x.classList.remove('on')); b.classList.toggle('on'); if (p.onchipchange) p.onchipchange(); }
@@ -577,30 +583,84 @@ function jobForm(id, kind){
     '<div id="jcat">' + F.chips('jtags', 'Bölüm (birden fazla seçilebilir)', [['ONCELIKLI','Acil'],['SURELI','Süreli'],['NORMAL','Normal'],['TAKIP','Takip']], tags, true) + '</div>' +
     '<div class="row"><div>' + F.date('jdate', 'Tarih / son gün', j ? j.date : '') + '</div><div id="jtw">' + F.time('jtime', 'Saat', j ? j.time : '') + '</div></div>' +
     F.text('jtitle', isEv ? 'Mahkeme / yer' : 'Dosya / müvekkil', j ? j.title : '', isEv ? 'Örn. Büyükçekmece 3. Asliye Hukuk' : 'Örn. Yurdagül Saka – 2026/902') +
-    F.text('jfile', isEv ? 'Esas no – taraflar' : 'Dosya no (isteğe bağlı)', j ? j.file : '') + F.area('jdetail', 'Açıklama', j ? j.detail : '') +
+    F.text('jfile', isEv ? 'Esas no – taraflar' : 'Dosya no (isteğe bağlı)', j ? j.file : '') +
+    '<div id="jatt">' + F.chips('jattend', 'Katılım şekli', [], []) + '</div>' + F.area('jdetail', isEv ? (k0 === 'ARABULUCULUK' ? 'Toplantı öncesi not' : 'Duruşma öncesi not') : 'Açıklama', j ? j.detail : '') +
     F.sel('jas', 'Sorumlu', D.owners, j ? (j.assignee || 'Faruk') : 'Faruk') + '</div>';
   if (j && j.att) h += '<div class="mu" style="margin:0 4px">📎 ' + j.att + ' ek dosya (bilgisayarda)</div>';
+  if (j && isEv && j.done) h += '<div class="card">' + (j.minutesFile ? '<div class="gt">✓ Tutanak: ' + esc(j.minutesFile) + '</div>' : '<div class="rt">Tutanak eksik</div>' + F.file('jmin', k0 === 'ARABULUCULUK' ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<button class="btn sm" id="jminok" style="margin-top:8px">Tutanağı gönder</button><div class="mu" style="margin-top:6px">Bilgisayar tutanağı okuyup süreli ara kararları iş olarak ekler.</div>') + '</div>';
+  if (j && isEv && !j.done) h += '<div class="card">' + F.file('jdoc', k0 === 'ARABULUCULUK' ? 'Toplantı öncesi belge ekle' : 'Belge ekle') + '<button class="btn sm sec" id="jdocok" style="margin-top:8px">Belgeyi gönder</button></div>';
   h += '<button class="btn" id="jsave">Kaydet</button>';
   if (j && !j.done) h += '<button class="btn gr" id="jdone">' + (isEv ? (k0 === 'ARABULUCULUK' ? 'Toplantı yapıldı – netice gir' : 'Duruşmaya girildi – not gir') : 'Yapıldı') + '</button>';
   if (j && j.done) h += '<div class="card"><b>✓ ' + esc(j.doneReason) + '</b><div class="mu">' + esc((j.doneAt || '').replace('T', ' ')) + '</div><div>' + esc(j.doneNote) + '</div></div><button class="btn sec" id="jundo">Yeniden aç</button>';
   if (j) h += '<button class="btn dan" id="jdel">Sil</button>';
   const s = openSheet(j ? (isEv ? 'Duruşma / Toplantı' : 'İş') : 'Yeni Kayıt', h);
-  const sync = () => { const ev = CH('jmode')[0] !== 'IS'; s.querySelector('#jcat').classList.toggle('hide', ev); s.querySelector('#jtw').classList.toggle('hide', !ev); };
+  const attBox = s.querySelector('#jatt');
+  const sync = () => { const md = CH('jmode')[0], ev = md !== 'IS'; s.querySelector('#jcat').classList.toggle('hide', ev); s.querySelector('#jtw').classList.toggle('hide', !ev); attBox.classList.toggle('hide', !ev);
+    if (ev) { const cur = CH('jattend')[0] || (j ? j.attend : ''); const opts = md === 'ARABULUCULUK' ? D.medAttend : D.durAttend; attBox.innerHTML = F.chips('jattend', 'Katılım şekli', opts || [], [cur]); } };
   s.querySelector('#jmode').onchipchange = sync; sync();
   s.querySelector('#jsave').onclick = () => { const md = CH('jmode')[0] || 'IS';
-    save('job/save', {id: j ? j.id : '', kind: md === 'IS' ? 'NORMAL' : md, tags: CH('jtags'), date: V('jdate'), time: V('jtime'), title: V('jtitle'), file: V('jfile'), detail: V('jdetail'), assignee: V('jas')}); };
+    save('job/save', {id: j ? j.id : '', kind: md === 'IS' ? 'NORMAL' : md, tags: CH('jtags'), date: V('jdate'), time: V('jtime'), title: V('jtitle'), file: V('jfile'), detail: V('jdetail'), assignee: V('jas'), attend: md === 'IS' ? '' : (CH('jattend')[0] || '')}); };
+  const fileOf = id => { const e = s.querySelector('#' + id); return e && e.files && e.files[0]; };
+  const up = async (inp, role) => { const f = fileOf(inp); if (!f) { s.querySelector('.err').textContent = 'Dosya seçin'; return; } try { toast('Yükleniyor…'); await uploadAttach(j.id, f, role); toast(role === 'minutes' ? 'Tutanak gönderildi · bilgisayar işleyecek' : 'Belge gönderildi'); closeAll(); render(); } catch(e){ s.querySelector('.err').textContent = e.message; } };
+  if (s.querySelector('#jminok')) s.querySelector('#jminok').onclick = () => up('jmin', 'minutes');
+  if (s.querySelector('#jdocok')) s.querySelector('#jdocok').onclick = () => up('jdoc', 'att');
   if (j && !j.done) s.querySelector('#jdone').onclick = () => doneForm(j);
   if (j && j.done) s.querySelector('#jundo').onclick = () => save('job/done', {id: j.id, done: false}, 'Yeniden açıldı');
   if (j) s.querySelector('#jdel').onclick = () => { if (confirm('Bu kayıt silinsin mi?')) save('job/delete', {id: j.id}, 'Silindi'); };
 }
 function doneForm(j){
   const ev = j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK', med = j.kind === 'ARABULUCULUK';
-  let h = '<div class="card"><div class="ttl">' + esc(j.title) + '</div><div class="mu">' + esc(j.file) + '</div>' +
-    (ev ? (med ? F.sel('dreason', 'Netice', D.medOutcomes, 'Anlaşma') : '') : F.sel('dreason', 'Sebep', D.doneReasons, 'İşlem yapıldı')) +
-    F.area('dnote', ev ? (med ? 'Toplantı notu (zorunlu)' : 'Duruşma notu – ne oldu, ara karar, sonraki tarih (zorunlu)') : 'Not', '') + '</div><button class="btn gr" id="dok">Kaydet</button>' +
-    (ev ? '<div class="mu" style="margin:10px 4px">Tutanak / form dosyası eklemek için bilgisayardaki programı kullanın. Sonraki duruşmayı ayrıca ekleyin.</div>' : '');
+  let h = '<div class="card"><div class="ttl">' + esc(j.title) + '</div><div class="mu">' + esc(j.file) + '</div>';
+  if (ev) h += F.chips('dattend', 'Katılım şekli (zorunlu)', med ? D.medAttend : D.durAttend, [j.attend || '']) + F.sel('dby', med ? 'Toplantıya katılan' : 'Duruşmaya giren / takip eden', D.owners, j.assignee || 'Faruk') +
+    (med ? F.sel('dreason', 'Netice', D.medOutcomes, 'Anlaşma') : '');
+  else h += F.sel('dreason', 'Sebep', D.doneReasons, 'İşlem yapıldı');
+  h += F.area('dnote', ev ? (med ? 'Toplantı notu – ne konuşuldu, teklif, sonraki adım (zorunlu)' : 'Duruşma notu – ne oldu, ara karar, sonraki tarih (zorunlu)') : 'Not', '');
+  if (ev) h += F.file('dmin', med ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<div class="mu" style="margin-top:6px">Tutanak eklenmezse kayıt "tutanak eksik" olarak kırmızı kalır. Eklenen tutanağı bilgisayar okur, süreli ara kararları iş olarak ekler.</div>';
+  h += '</div><button class="btn gr" id="dok">Kaydet</button>';
   const s = openSheet(ev ? 'Sonuç Gir' : 'Yapıldı', h);
-  s.querySelector('#dok').onclick = async () => { const r = await save('job/done', {id: j.id, done: true, reason: V('dreason'), note: V('dnote')}, 'İşaretlendi'); if (r) closeAll(); };
+  s.querySelector('#dok').onclick = async () => {
+    const err = s.querySelector('.err');
+    if (ev && !CH('dattend').length) { err.textContent = 'Katılım şeklini seçin'; return; }
+    if (ev && !V('dnote')) { err.textContent = 'Not zorunlu'; return; }
+    const fe = s.querySelector('#dmin'), f = fe && fe.files && fe.files[0];
+    if (ev && !f && !confirm('Tutanak eklenmedi. Kayıt "tutanak eksik" olarak kalacak. Devam edilsin mi?')) return;
+    try {
+      if (f) { toast('Tutanak yükleniyor…'); await uploadAttach(j.id, f, 'minutes'); }
+      await send('job/done', {id: j.id, done: true, reason: V('dreason'), note: V('dnote'), attend: ev ? CH('dattend')[0] : '', by: ev ? V('dby') : ''});
+      toast('Kaydedildi · bilgisayara iletiliyor'); closeAll(); render();
+      if (med) followForm(j, V('dreason') || '');
+    } catch(e){ err.textContent = e.message; }
+  };
+}
+async function uploadAttach(jobId, file, role){
+  if (file.size > 4 * 1024 * 1024) throw new Error('Dosya 4 MB\'dan büyük – bilgisayardaki programdan ekleyin');
+  const fid = Date.now().toString(36) + '-' + rnd(6) + '_' + file.name.replace(/[\\/:*?"<>|#%]/g, '-');
+  const r = await graph('/me/drive/root:/' + encPath(PATH + '/gelen_kutusu/ekler/' + fid) + ':/content', {method: 'PUT', headers: {'Content-Type': 'application/octet-stream'}, body: file});
+  if (!r.ok) throw new Error('Dosya yüklenemedi (' + r.status + ')');
+  await send('job/attach', {id: jobId, role: role, file: fid, name: file.name});
+}
+function followForm(j, outcome){
+  const plus = n => { const d = new Date(today()); d.setDate(d.getDate() + n); return iso(d); };
+  const t = j.file ? j.file + ' – arabuluculuk' : j.title, dt = fd(j.date);
+  const L = [];
+  if (outcome === 'Anlaşma' || outcome === 'Kısmen anlaşma') L.push({kind:'NORMAL', date: plus(7), title: t, detail: 'Arabuluculuk anlaşma belgesi (' + dt + ') – ödeme / edim takvimi takip edilecek; müvekkile bilgi verilecek; gerekirse icra edilebilirlik şerhi alınacak.'});
+  if (outcome === 'Anlaşmama' || outcome === 'Kısmen anlaşma') L.push({kind:'SURELI', date: plus(14), title: t, detail: 'Arabuluculuk son tutanağı (' + outcome.toLocaleLowerCase('tr') + ', ' + dt + ') – ' + (outcome === 'Kısmen anlaşma' ? 'anlaşılamayan kısım için ' : '') + 'dava açılacak. Dava açma süresini dosyaya göre kontrol edin.'});
+  if (outcome === 'Vazgeçme') L.push({kind:'NORMAL', date: plus(7), title: t, detail: 'Arabuluculuktan vazgeçildi (' + dt + ') – müvekkile bilgi verilecek, dosya kapatılacak / sonraki adım belirlenecek.'});
+  if (outcome === 'Ertelendi') L.push({kind:'ARABULUCULUK', date: '', title: j.title, file: j.file, detail: 'Ertelenen toplantı – önceki: ' + dt});
+  if (!L.length) return;
+  let h = '<div class="mu" style="margin:0 4px 6px">Netice: <b>' + esc(outcome) + '</b> – önerilen takip işleri. İstemediğinizi işaretten çıkarın.</div>';
+  L.forEach((x, i) => h += '<div class="card"><label class="f"><input type="checkbox" id="fon' + i + '" checked> ' + ({SURELI:'Süreli iş',NORMAL:'Normal iş',ARABULUCULUK:'Yeni toplantı'})[x.kind] + '</label>' + F.text('ft' + i, 'Başlık', x.title) + F.date('fd' + i, x.kind === 'ARABULUCULUK' ? 'Toplantı tarihi' : 'Son gün / tarih', x.date) +
+    (x.kind === 'ARABULUCULUK' ? F.time('fh' + i, 'Saat', '') : '') + F.sel('fw' + i, 'Sorumlu', D.owners, j.assignee || 'Faruk') + F.area('fx' + i, 'Açıklama', x.detail) + '</div>');
+  h += '<button class="btn" id="fok">Seçilenleri ekle</button>';
+  const s = openSheet('Takip İşleri', h);
+  s.querySelector('#fok').onclick = async () => {
+    try {
+      for (let i = 0; i < L.length; i++) { if (!s.querySelector('#fon' + i).checked) continue; const x = L[i];
+        if ((x.kind === 'SURELI' || x.kind === 'ARABULUCULUK') && !V('fd' + i)) throw new Error('Tarih girin: ' + V('ft' + i));
+        await send('job/save', {kind: x.kind, tags: x.kind === 'ARABULUCULUK' ? [] : [x.kind], date: V('fd' + i), time: x.kind === 'ARABULUCULUK' ? V('fh' + i) : '', title: V('ft' + i), file: x.file || '', detail: V('fx' + i), assignee: V('fw' + i), attend: x.kind === 'ARABULUCULUK' ? (j.attend || '') : ''}); }
+      toast('Takip işleri eklendi'); closeAll(); render();
+    } catch(e){ s.querySelector('.err').textContent = e.message; }
+  };
 }
 
 /* ---------- süre hesaplayıcı */

@@ -589,7 +589,7 @@ function jobForm(id, kind){
     '<div id="jatt">' + F.chips('jattend', 'Katılım şekli', [], []) + '</div>' + F.area('jdetail', isEv ? (k0 === 'ARABULUCULUK' ? 'Toplantı öncesi not' : 'Duruşma öncesi not') : 'Açıklama', j ? j.detail : '') +
     F.sel('jas', 'Sorumlu', D.owners, j ? (j.assignee || 'Faruk') : 'Faruk') + '</div>';
   if (j && j.att) h += '<div class="mu" style="margin:0 4px">📎 ' + j.att + ' ek dosya (bilgisayarda)</div>';
-  if (j && isEv && j.done) h += '<div class="card">' + (j.minutesFile ? '<div class="gt">✓ Tutanak: ' + esc(j.minutesFile) + '</div>' : '<div class="rt">Tutanak eksik</div>' + F.file('jmin', k0 === 'ARABULUCULUK' ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<button class="btn sm" id="jminok" style="margin-top:8px">Tutanağı gönder</button><div class="mu" style="margin-top:6px">Bilgisayar tutanağı okuyup süreli ara kararları iş olarak ekler.</div>') + '</div>';
+  if (j && isEv && j.done) h += '<div class="card">' + (j.minutesFile ? '<div class="gt">✓ Tutanak: ' + esc(j.minutesFile) + '</div>' : '<div class="rt">Tutanak eksik</div>' + F.file('jmin', k0 === 'ARABULUCULUK' ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<button class="btn sm" id="jminok" style="margin-top:8px">Tutanağı gönder</button><div class="mu" style="margin-top:6px">' + (k0 === 'ARABULUCULUK' ? 'Tutanak gönderilince ana iş (dava, icra, talimat…) ekranı açılır.' : 'Bilgisayar tutanağı okuyup süreli ara kararları iş olarak ekler.') + '</div>') + '</div>';
   if (j && isEv && !j.done) h += '<div class="card">' + F.file('jdoc', k0 === 'ARABULUCULUK' ? 'Toplantı öncesi belge ekle' : 'Belge ekle') + '<button class="btn sm sec" id="jdocok" style="margin-top:8px">Belgeyi gönder</button></div>';
   h += '<button class="btn" id="jsave">Kaydet</button>';
   if (j && !j.done) h += '<button class="btn gr" id="jdone">' + (isEv ? (k0 === 'ARABULUCULUK' ? 'Toplantı yapıldı – netice gir' : 'Duruşmaya girildi – not gir') : 'Yapıldı') + '</button>';
@@ -603,7 +603,7 @@ function jobForm(id, kind){
   s.querySelector('#jsave').onclick = () => { const md = CH('jmode')[0] || 'IS';
     save('job/save', {id: j ? j.id : '', kind: md === 'IS' ? 'NORMAL' : md, tags: CH('jtags'), date: V('jdate'), time: V('jtime'), title: V('jtitle'), file: V('jfile'), detail: V('jdetail'), assignee: V('jas'), attend: md === 'IS' ? '' : (CH('jattend')[0] || '')}); };
   const fileOf = id => { const e = s.querySelector('#' + id); return e && e.files && e.files[0]; };
-  const up = async (inp, role) => { const f = fileOf(inp); if (!f) { s.querySelector('.err').textContent = 'Dosya seçin'; return; } try { toast('Yükleniyor…'); await uploadAttach(j.id, f, role); toast(role === 'minutes' ? 'Tutanak gönderildi · bilgisayar işleyecek' : 'Belge gönderildi'); closeAll(); render(); } catch(e){ s.querySelector('.err').textContent = e.message; } };
+  const up = async (inp, role) => { const f = fileOf(inp); if (!f) { s.querySelector('.err').textContent = 'Dosya seçin'; return; } try { toast('Yükleniyor…'); await uploadAttach(j.id, f, role); toast(role === 'minutes' ? 'Tutanak gönderildi · bilgisayar işleyecek' : 'Belge gönderildi'); closeAll(); render(); if (role === 'minutes' && j.kind === 'ARABULUCULUK') medMainForm(j, j.doneReason, null); } catch(e){ s.querySelector('.err').textContent = e.message; } };
   if (s.querySelector('#jminok')) s.querySelector('#jminok').onclick = () => up('jmin', 'minutes');
   if (s.querySelector('#jdocok')) s.querySelector('#jdocok').onclick = () => up('jdoc', 'att');
   if (j && !j.done) s.querySelector('#jdone').onclick = () => doneForm(j);
@@ -619,7 +619,7 @@ function doneForm(j){
   h += F.area('dnote', ev ? (med ? 'Toplantı notu – ne konuşuldu, teklif, sonraki adım (zorunlu)' : 'Duruşma notu – ne oldu, ara karar, sonraki tarih (zorunlu)') : 'Not', '');
   h += '<label class="f"><input type="checkbox" id="dexh" onchange="document.querySelector(\'.sheet.show #dexw\').classList.toggle(\'hide\', !this.checked)"> Ek yapılacak husus / yeni iş var</label><div id="dexw" class="hide">' +
     F.area('dext', 'Her satır ayrı iş – "2 hafta", "10.11.2026", "cuma", "acil", "Mücahid" yazarsanız son gün / bölüm / sorumlu belirlenir', '') + '</div>';
-  if (ev) h += F.file('dmin', med ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<div class="mu" style="margin-top:6px">Tutanak eklenmezse kayıt "tutanak eksik" olarak kırmızı kalır. Eklenen tutanağı bilgisayar okur, süreli ara kararları iş olarak ekler.</div>';
+  if (ev) h += F.file('dmin', med ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<div class="mu" style="margin-top:6px">Tutanak eklenmezse kayıt "tutanak eksik" olarak kırmızı kalır. ' + (med ? 'Tutanak eklenince ana iş (dava, icra, talimat…) ekranı açılır.' : 'Eklenen tutanağı bilgisayar okur, süreli ara kararları iş olarak ekler.') + '</div>';
   h += '</div><button class="btn gr" id="dok">Kaydet</button>';
   const s = openSheet(ev ? 'Sonuç Gir' : 'Yapıldı', h);
   s.querySelector('#dok').onclick = async () => {
@@ -633,8 +633,10 @@ function doneForm(j){
       if (f) { toast('Tutanak yükleniyor…'); await uploadAttach(j.id, f, 'minutes'); }
       const exh = s.querySelector('#dexh'), extra = exh && exh.checked ? V('dext') : '';
       await send('job/done', {id: j.id, done: true, reason: V('dreason'), note: V('dnote') + (extra ? '\nEk yapılacak: ' + extra.replace(/\n+/g, ' / ') : ''), attend: ev ? CH('dattend')[0] : '', by: ev ? V('dby') : ''});
+      const oc = med ? (V('dreason') || '') : '', at = ev ? CH('dattend')[0] : '';
       toast('Kaydedildi · bilgisayara iletiliyor'); closeAll(); render();
-      followForm(j, med ? (V('dreason') || '') : '', ev ? CH('dattend')[0] : '', extra);
+      if (med && f) medMainForm(j, oc, () => followForm(j, oc === 'Ertelendi' ? oc : '', at, extra));
+      else followForm(j, oc, at, extra);
     } catch(e){ err.textContent = e.message; }
   };
 }
@@ -695,6 +697,50 @@ function followForm(j, outcome, attend, extra){
   };
 }
 
+
+/* ---------- arabuluculuk tutanağı sonrası: ana iş ekranı (tutanakta süreli iş aranmaz) */
+const MED_MAIN = ['Dava açılacak','İcra takibi başlatılacak','Anlaşma belgesi – ödeme / edim takibi','İcra edilebilirlik şerhi alınacak','İhtarname gönderilecek','Müvekkilden talimat alınacak','Karşı tarafın davası beklenecek / takip','Diğer'];
+function medMainDef(o, us){ if (o === 'Anlaşma') return MED_MAIN[2]; if (o === 'Kısmen anlaşma') return us ? MED_MAIN[0] : MED_MAIN[2]; if (o === 'Anlaşmama' || o === 'Vazgeçme') return us ? MED_MAIN[0] : MED_MAIN[6]; return MED_MAIN[5]; }
+function medMainTxt(m, o, dt, us){
+  const h = 'Arabuluculuk son tutanağı (' + (o || 'netice girilmedi') + ', ' + dt + ') ekte. Başvuran: ' + (us ? 'biz (müvekkil)' : 'karşı taraf') + '. ';
+  return h + ({'Dava açılacak': 'Başvuru amacına uygun olarak ' + (o === 'Kısmen anlaşma' ? 'anlaşılamayan kısım için ' : '') + 'dava açılacak: [dava türü / mahkeme / talep].',
+    'İcra takibi başlatılacak': 'Alacak için icra takibi başlatılacak: [takip türü / tutar].',
+    'Anlaşma belgesi – ödeme / edim takibi': 'Anlaşma belgesindeki ödeme / edim takvimi takip edilecek; müvekkile bilgi verilecek.',
+    'İcra edilebilirlik şerhi alınacak': 'Anlaşma belgesine icra edilebilirlik şerhi alınacak.',
+    'İhtarname gönderilecek': 'Karşı tarafa ihtarname gönderilecek: [konu].',
+    'Müvekkilden talimat alınacak': 'Müvekkilden talimat alınacak: dava açılsın mı, beklensin mi, dosya kapatılsın mı?',
+    'Karşı tarafın davası beklenecek / takip': 'Karşı tarafın dava açıp açmadığı takip edilecek; tebligat gelirse cevap süresi işlenecek.'})[m] || h;
+}
+function medMainForm(j, outcome, after){
+  const o = outcome || j.doneReason || '', dt = fd(j.date), base = j.date || iso(today());
+  let us = !/başvuran: karşı/i.test(j.detail || ''), edited = false, touched = false;
+  const plus7 = (() => { const d = new Date(today()); d.setDate(d.getDate() + 7); return iso(d); })();
+  const h = '<div class="mu" style="margin:0 4px 6px">Arabulucu tutanağında süreli iş olmaz. Başvuru bir amaçla yapıldıysa <b>ana işi</b>, varsa süresini ve son gününü belirleyin. İstemiyorsanız <b>İş eklenmesin</b>.</div>' +
+    '<div class="card">' + F.chips('mmus', 'Başvuran', [['B','Biz başvurduk'],['K','Karşı taraf başvurdu']], [us ? 'B' : 'K']) +
+    F.sel('mmain', 'Ana iş', MED_MAIN, medMainDef(o, us)) + F.text('mmt', 'Dosya / müvekkil', j.file || j.title) +
+    '<label class="f"><input type="checkbox" id="mmtimed"> Süresi var (süreli iş)</label><label class="f"><input type="checkbox" id="mmacil"> Acil</label>' +
+    '<div id="mmtw" class="hide"><div class="row"><div>' + F.num('mmn', 'Süre', '') + '</div><div>' + F.sel('mmu', 'Birim', ['gün','hafta','ay','yıl'], 'hafta') + '</div></div><div class="mu" id="mmcalc">Toplantı tarihinden (' + dt + ') itibaren hesaplanır.</div></div>' +
+    F.date('mmd', 'Son gün / takip tarihi', plus7) + F.area('mmx', 'Açıklama', medMainTxt(medMainDef(o, us), o, dt, us)) + F.sel('mmw', 'Sorumlu', D.owners, j.assignee || 'Faruk') + '</div>' +
+    '<button class="btn" id="mmok">Ana İşi Ekle</button><button class="btn sec" id="mmno">İş eklenmesin</button>';
+  const s = openSheet('Arabuluculuk Sonrası – Ana İş', h);
+  const q = id => s.querySelector('#' + id), done = () => { closeSheet(); if (after) after(); };
+  const reTxt = () => { if (!edited) q('mmx').value = medMainTxt(q('mmain').value, o, dt, us); };
+  q('mmx').addEventListener('input', () => edited = true);
+  q('mmain').addEventListener('change', () => { touched = true; reTxt(); });
+  q('mmus').onchipchange = () => { us = (CH('mmus')[0] || 'B') === 'B'; if (!touched) q('mmain').value = medMainDef(o, us); reTxt(); };
+  const calc = () => { const n = +q('mmn').value; if (!(n > 0)) return; try { const r = deadlineCalc(base, n, q('mmu').value, false); q('mmd').value = r.date; q('mmcalc').textContent = dt + ' + ' + n + ' ' + q('mmu').value + ' → son gün ' + fd(r.date) + ' ' + WD[pd(r.date).getDay()]; } catch(e){} };
+  q('mmtimed').onchange = () => q('mmtw').classList.toggle('hide', !q('mmtimed').checked);
+  q('mmn').addEventListener('input', calc); q('mmu').addEventListener('change', calc);
+  q('mmno').onclick = () => { toast('Ana iş eklenmedi'); done(); };
+  q('mmok').onclick = async () => {
+    const timed = q('mmtimed').checked, acil = q('mmacil').checked, d = q('mmd').value;
+    if (!q('mmt').value.trim()) { s.querySelector('.err').textContent = 'Dosya / müvekkil yazın'; return; }
+    if (timed && !d) { s.querySelector('.err').textContent = 'Süreli iş için süre ya da son gün girin'; return; }
+    const kind = timed ? 'SURELI' : acil ? 'ONCELIKLI' : 'NORMAL', tags = [kind].concat(timed && acil ? ['ONCELIKLI'] : []);
+    try { await send('job/save', {kind: kind, tags: tags, date: d, time: '', title: q('mmt').value.trim(), file: '', detail: '[' + q('mmain').value + '] ' + q('mmx').value.trim(), assignee: q('mmw').value, attend: ''});
+      toast('Ana iş eklendi'); done(); render(); } catch(e){ s.querySelector('.err').textContent = e.message; }
+  };
+}
 /* ---------- süre hesaplayıcı */
 function deadlineForm(){
   const pre = [['HMK istinaf',2,'hafta',1],['HMK temyiz',1,'ay',1],['Cevap dilekçesi',2,'hafta',1],['Ödeme emrine itiraz',7,'gün',0],['İcra şikayeti',7,'gün',0],['İİK 68',6,'ay',0],['İİK 67',1,'yıl',0]];

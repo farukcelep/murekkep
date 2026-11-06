@@ -189,7 +189,8 @@ async function load(silent){
   if (syncing) return; syncing = true;
   try {
     if (!PATH || !D) { const p = await findPath(); if (!p) throw new Error('OneDrive\'da MÜREKKEP verisi bulunamadı. Bilgisayarda programı bir kez açın (TELEFON klasörü oluşur) ve OneDrive eşitlemesini bekleyin; ya da Ayarlar\'dan klasör yolunu girin.'); PATH = p; LS.set('mk_path', p); }
-    const txt = await readFile(PATH + '/veri.json');
+    let txt = await readFile(PATH + '/veri.json');
+    if (!txt) { const old = PATH; PATH = ''; const p = await findPath(); if (p) { PATH = p; LS.set('mk_path', p); txt = await readFile(PATH + '/veri.json'); } else PATH = old; }
     if (!txt) throw new Error('veri.json bulunamadı: ' + PATH);
     const fresh = JSON.parse(txt);
     try { const rt = await readFile(PATH + '/sonuclar.json'); R = {}; if (rt) for (const x of (JSON.parse(rt).results || [])) R[x.opId] = x; } catch(e){}

@@ -823,7 +823,7 @@ function icraForm(id){
     '<div class="row"><div>' + F.date('istart', 'Takip tarihi', f.start) + '</div><div>' + F.num('iamt', 'Takip miktarı', amt(f.amount)) + '</div></div>' + F.num('ifee', 'Vekalet ücreti', amt(f.fee)) + '</div>' +
     '<div class="card">' + F.sel('istage', 'Aşama', D.stages, f.stage) + '<div id="iobj">' + F.date('iobjd', 'İtirazın tebliğ tarihi (zorunlu)', f.objServed) + F.text('icourt', 'Mahkeme', f.court || '') + '</div>' +
     '<div id="iext">' + F.chips('iasked', 'Ücret istendi mi?', [['E','Evet'],['H','Hayır']], [f.feeAsked || '']) + F.chips('igot', 'Ücret alındı mı?', [['E','Evet'],['H','Hayır']], [f.feeGot || '']) + F.num('igota', 'Alınan tutar', amt(f.feeGotAmount)) + '</div>' +
-    F.chips('igrp', 'Grup', [['A','A'],['B','B'],['C','C'],['','Yok']], [f.group || '']) + '<div class="row"><div>' + F.date('ilast', 'Son işlem', f.lastAction) + '</div><div>' + F.sel('iown', 'Sorumlu', [['','Atanmamış']].concat(D.owners), f.owner || '') + '</div></div>' +
+    '<div class="row"><div>' + F.date('ilast', 'Son işlem', f.lastAction) + '</div><div>' + F.sel('iown', 'Sorumlu', [['','Atanmamış']].concat(D.owners), f.owner || '') + '</div></div>' +
     F.text('inext', 'Sonraki adım', f.nextStep || '') + F.date('inextd', 'Sonraki adım tarihi', f.nextDate) + '</div>' +
     '<div class="card">' + F.area('ifc', 'Bilgi / talimat (FC)', f.fcNote || '') + F.area('iof', 'Ofis bilgi', f.officeNote || '') + F.area('icl', 'Alacak açıklaması', f.claimDesc || '') + '</div><button class="btn" id="iok">Kaydet</button>' + (id ? '<button class="btn dan" id="idel">Dosyayı Sil</button>' : '');
   const s = openSheet(id ? 'Dosyayı Düzenle' : 'Yeni İcra Dosyası', h);
@@ -832,7 +832,7 @@ function icraForm(id){
   s.querySelector('#iok').onclick = async () => {
     const r = await save('icra/save', {id: id || '', site: V('isite'), client: V('icli'), role: V('irole'), office: V('ioff'), no: V('ino'), type: V('itype'), creditor: V('icred'), debtor: V('idebt'), block: V('iblk'), flat: V('iflt'), occupant: V('iocc'),
       start: V('istart'), amount: V('iamt'), fee: V('ifee'), stage: V('istage'), objServed: V('iobjd'), court: V('icourt'), feeAsked: CH('iasked')[0] || '', feeGot: CH('igot')[0] || '', feeGotAmount: V('igota'),
-      group: CH('igrp')[0] || '', lastAction: V('ilast'), owner: V('iown'), nextStep: V('inext'), nextDate: V('inextd'), fcNote: V('ifc'), officeNote: V('iof'), claimDesc: V('icl')});
+      lastAction: V('ilast'), owner: V('iown'), nextStep: V('inext'), nextDate: V('inextd'), fcNote: V('ifc'), officeNote: V('iof'), claimDesc: V('icl')});
     if (r && id) { if (sheetStack.length) { sheetStack.pop().remove(); } icraView(id); }
   };
   if (id) s.querySelector('#idel').onclick = async () => { if (confirm('İcra dosyası, hacizleri ve tahsilatları silinsin mi?')) { const r = await save('icra/delete', {id}, 'Silindi'); if (r) closeAll(); } };

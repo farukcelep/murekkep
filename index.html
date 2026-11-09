@@ -802,10 +802,14 @@ function icraView(id){
     (f.debtorPhone ? '<span>Borçlu tel</span><div>' + f.debtorPhone.split(/[,;]/).map(p => '<a class="tel" href="tel:' + esc(p.replace(/[^0-9+]/g, '')) + '">' + esc(p.trim()) + '</a>').join(', ') + '</div>' : '') +
     '<span>Blok / daire</span><div>' + esc((f.block || '') + (f.flat ? ' / ' + f.flat : '')) + (f.occupant ? ' (' + esc(f.occupant) + ')' : '') + '</div><span>Takip</span><div>' + fd(f.start) + (f.amount ? ' · ' + money(f.amount) : '') + '</div>' +
     (f.fee ? '<span>Vekalet ücreti</span><div>' + money(f.fee) + '</div>' : '') + '<span>Son işlem</span><div>' + fd(f.last) + '</div>' + (f.nextStep ? '<span>Sonraki adım</span><b>' + esc(f.nextStep) + (f.nextDate ? ' – ' + fd(f.nextDate) : '') + '</b>' : '') +
-    (f.objServed ? '<span>İtiraz tebliği</span><div>' + fd(f.objServed) + '</div>' : '') + (f.owner ? '<span>Sorumlu</span><div>' + esc(f.owner) + '</div>' : '') + '</div>' +
+    (f.objDate ? '<span>İtiraz tarihi</span><div>' + fd(f.objDate) + '</div>' : '') + (f.objServed ? '<span>İtirazın tebliği</span><div>' + fd(f.objServed) + '</div>' : '') + (f.sureText ? '<span>Süreler</span><div>' + esc(f.sureText).replace(/ {5}/g, '<br>') + '</div>' : '') + (f.owner ? '<span>Sorumlu</span><div>' + esc(f.owner) + '</div>' : '') + '</div>' +
     (f.alarms.length ? '<div style="margin-top:8px">' + f.alarms.map(a => '<div class="' + (a.sev === 'r' ? 'rt' : 'ot') + '">● ' + esc(a.text) + '</div>').join('') + '</div>' : '') + '</div>';
   if (f.stage !== 'Kapandı') {
     const fj = (f.fjobs || []).slice().sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
+    if ((f.debtors || []).length > 1) h += '<div class="card"><div class="mu">Borçlular (' + f.debtors.length + ') – süreçler ayrı</div>' + f.debtors.map(d => '<div style="margin-top:8px"><b>' + esc(d.name) + '</b> <span class="mu">· ' + esc(d.stage || '') + '</span><br><span style="color:#6B1E2E">' + esc(d.flowTitle || '') + '</span>' +
+      (d.phone ? '<br>Tel: <a class="tel" href="tel:' + esc(d.phone.replace(/[^0-9+]/g, '')) + '">' + esc(d.phone) + '</a>' : '') + '<br><span class="mu">Tebliğ ' + (d.served ? fd(d.served) : '—') + ' · itiraz ' + (d.objDate ? fd(d.objDate) : '—') + ' · itirazın tebliği ' + (d.objServed ? fd(d.objServed) : '—') + '</span>' +
+      (d.sureText ? '<br><span class="mu">' + esc(d.sureText).replace(/ {5}/g, '<br>') + '</span>' : '') + (d.fjobs || []).map(j => '<br>• ' + (j.date ? '<b>' + fd(j.date) + '</b> ' : '') + esc(j.title)).join('') +
+      '<br><button class="btn sm" style="margin-top:6px" onclick="flowForm(\'' + f.id + '\',\'' + d.id + '\')">Sonraki Adım</button></div>').join('') + '</div>';
     h += '<div class="card"><div class="mu">Bulunduğu adım</div><b>' + esc(f.flowTitle || '—') + '</b>' + (f.served ? '<div class="mu">Tebliğ ' + fd(f.served) + (f.finalized ? ' · kesinleşme ' + fd(f.finalized) : '') + '</div>' : '') +
       (fj.length ? '<div style="margin-top:6px">' + fj.map(j => '<div class="' + (j.date && days(j.date) < 0 ? 'rt' : '') + '">• ' + (j.date ? '<b>' + fd(j.date) + '</b> ' : '') + esc(j.title) + ' <span class="mu">(' + esc(j.who) + ')</span></div>').join('') + '</div>' : '<div class="ot" style="margin-top:6px">Açık akış işi yok</div>') +
       (f.flowPending ? '<div class="mu" style="margin-top:6px">Son adım bilgisayara iletildi – işlenince yeni işler burada görünür.</div>' : '') +
@@ -839,13 +843,21 @@ function icraCloseForm(id){
     try { await api('icra/close', {id: id, date: V('cd'), note: r === 'Diğer' ? n : r + (n ? ' – ' + n : '')}); toast('Dosya kapatıldı'); closeSheet(); refreshSheet(() => icraView(id)); } catch(e){ s.querySelector('.err').textContent = e.message; } };
 }
 async function icraReopen(id){ if (!confirm('Dosya yeniden açılsın mı?')) return; const f = D.icra.find(x => x.id === id); try { await api('icra/save', Object.assign(icraBody(f), {stage: D.stages[0]})); f.closedDate = ''; f.closeNote = ''; toast('Yeniden açıldı'); refreshSheet(() => icraView(id)); } catch(e){ toast(e.message); } }
-function icraBody(f){ return {id:f.id, site:f.site, client:f.clientRaw, role:f.role, office:f.office, no:f.no, type:f.type, creditor:f.creditor, debtor:f.debtor, debtorPhone:f.debtorPhone || '', block:f.block, flat:f.flat, occupant:f.occupant, start:f.start, amount:amt(f.amount), fee:amt(f.fee), stage:f.stage, objServed:f.objServed, court:f.court, lastAction:f.lastAction, nextStep:f.nextStep, nextDate:f.nextDate, owner:f.owner, fcNote:f.fcNote, officeNote:f.officeNote, claimDesc:f.claimDesc, feeAsked:f.feeAsked, feeGot:f.feeGot, feeGotAmount:amt(f.feeGotAmount)}; }
-function flowForm(id){
+function icraBody(f){ return {id:f.id, site:f.site, client:f.clientRaw, role:f.role, office:f.office, no:f.no, type:f.type, creditor:f.creditor, debtor:f.debtor, debtorPhone:f.debtorPhone || '', block:f.block, flat:f.flat, occupant:f.occupant, start:f.start, amount:amt(f.amount), fee:amt(f.fee), stage:f.stage, objServed:f.objServed, objDate:f.objDate || '', served:f.servedDate || '', court:f.court, lastAction:f.lastAction, nextStep:f.nextStep, nextDate:f.nextDate, owner:f.owner, fcNote:f.fcNote, officeNote:f.officeNote, claimDesc:f.claimDesc, feeAsked:f.feeAsked, feeGot:f.feeGot, feeGotAmount:amt(f.feeGotAmount)}; }
+function flowForm(id, debId){
   const f = D.icra.find(x => x.id === id); if (!f) return;
-  const acts = f.actions || [];
+  const ds = f.debtors || [];
+  if (ds.length > 1 && !debId) {
+    const s0 = openSheet('Hangi borçlu?', '<div class="card"><div class="mu">Bu dosyada ' + ds.length + ' borçlu var; süreçleri ayrı izlenir.</div></div>' + ds.map((d, i) => '<button class="btn sec" id="fdb' + i + '">' + esc(d.name) + '<br><small>' + esc(d.flowTitle || '') + '</small></button>').join('') + '<button class="btn sec" id="fdball">Tüm borçlular (aynı işlem)</button>');
+    ds.forEach((d, i) => s0.querySelector('#fdb' + i).onclick = () => { closeSheet(); flowForm(id, d.id); });
+    s0.querySelector('#fdball').onclick = () => { closeSheet(); flowForm(id, '*'); };
+    return;
+  }
+  const deb = debId && debId !== '*' ? ds.find(d => d.id === debId) : (ds.length === 1 ? ds[0] : null);
+  const acts = (deb ? deb.actions : debId === '*' && ds.length ? ds[0].actions : f.actions) || [];
   if (!acts.length) { toast('Bu dosya için adım bilgisi yok – veriyi yenileyin'); return; }
   const tels = ['Bizzat / e-tebligat','21/1 (birlikte oturan / muhtar)','21/2','35. madde','Mernis adresine'];
-  let h = '<div class="card"><div class="mu">' + esc(f.type + ' · ' + f.role) + '</div><b>' + esc(f.flowTitle || '') + '</b>' + (f.debtorPhone ? '<div>Borçlu tel: <a class="tel" href="tel:' + esc(f.debtorPhone.split(/[,;]/)[0].replace(/[^0-9+]/g, '')) + '">' + esc(f.debtorPhone) + '</a></div>' : '') +
+  let h = '<div class="card">' + (ds.length > 1 ? '<div style="color:#6B1E2E"><b>Borçlu: ' + esc(debId === '*' ? 'Tüm borçlular' : (deb ? deb.name : '')) + '</b></div>' : '') + '<div class="mu">' + esc(f.type + ' · ' + f.role) + '</div><b>' + esc((deb ? deb.flowTitle : f.flowTitle) || '') + '</b>' + (f.debtorPhone ? '<div>Borçlu tel: <a class="tel" href="tel:' + esc(f.debtorPhone.split(/[,;]/)[0].replace(/[^0-9+]/g, '')) + '">' + esc(f.debtorPhone) + '</a></div>' : '') +
     '<div class="mu" style="margin-top:6px">Seçtiğiniz işleme göre açık iş kapanır, dosyaya not düşer ve sıradaki iş sorumlusuna açılır.</div></div><div class="card"><label class="f">Ne oldu?</label><div id="fla">' +
     acts.map((a, i) => '<label class="rad"><input type="radio" name="fla" value="' + esc(a[0]) + '"' + (i === 0 ? ' checked' : '') + '> ' + esc(a[1]) + '</label>').join('') + '</div>' +
     '<div id="fldw">' + F.date('fld', 'Tarih', D.today) + '</div>' +
@@ -872,7 +884,7 @@ function flowForm(id){
     if (a === 'ony_ok' && !CH('flo').length) { err.textContent = 'Onaylanan yolu seçin'; return; }
     if (a === 'gor_prot' && !(+V('flt') >= 1)) { err.textContent = 'Taksit sayısını girin'; return; }
     if (a === 'bk_sec' && !CH('flc').length) { err.textContent = 'En az bir seçenek işaretleyin'; return; }
-    try { await send('icra/flow', {id: id, action: a, label: x[1] || a, date: x[2] ? V('fld') : '', note: V('fln'), served: V('fls'), hz: CH('flh'), onay: CH('flo'), taksit: V('flt'), secim: CH('flc')});
+    try { await send('icra/flow', {id: id, debtorId: debId || (deb ? deb.id : ''), action: a, label: x[1] || a, date: x[2] ? V('fld') : '', note: V('fln'), served: V('fls'), hz: CH('flh'), onay: CH('flo'), taksit: V('flt'), secim: CH('flc')});
       toast('Kaydedildi · bilgisayar işleyince sıradaki iş açılır'); closeSheet(); refreshSheet(() => icraView(id)); } catch(e){ err.textContent = e.message; }
   };
 }
@@ -913,7 +925,7 @@ function icraForm(id){
     F.sel('itype', 'Takip türü', D.types, f.type) + F.text('icred', 'Alacaklı', f.creditor || '') + F.text('idebt', 'Borçlu', f.debtor || '') + F.text('iphone', 'Borçlu telefonu', f.debtorPhone || '', '0532 000 00 00') +
     '<div class="row"><div>' + F.text('iblk', 'Blok', f.block || '') + '</div><div>' + F.text('iflt', 'Daire', f.flat || '') + '</div></div>' + F.sel('iocc', 'Malik / kiracı', [['','Belirsiz'],'Malik','Kiracı'], f.occupant || '') +
     '<div class="row"><div>' + F.date('istart', 'Takip tarihi', f.start) + '</div><div>' + F.num('iamt', 'Takip miktarı', amt(f.amount)) + '</div></div>' + F.num('ifee', 'Vekalet ücreti', amt(f.fee)) + '</div>' +
-    '<div class="card">' + F.sel('istage', 'Aşama', D.stages, f.stage) + '<div id="iobj">' + F.date('iobjd', 'İtirazın tebliğ tarihi (zorunlu)', f.objServed) + F.text('icourt', 'Mahkeme', f.court || '') + '</div>' +
+    '<div class="card">' + F.sel('istage', 'Aşama', D.stages, f.stage) + F.date('isrv', 'Ödeme / icra emrinin tebliğ tarihi', f.servedDate || f.served || '') + '<div id="iobj">' + F.date('iobjt', 'İtiraz tarihi (borçlunun itiraz ettiği gün)', f.objDate || '') + F.date('iobjd', 'İtirazın bize tebliğ tarihi', f.objServed) + F.text('icourt', 'Mahkeme', f.court || '') + '</div>' +
     '<div id="iext">' + F.chips('iasked', 'Ücret istendi mi?', [['E','Evet'],['H','Hayır']], [f.feeAsked || '']) + F.chips('igot', 'Ücret alındı mı?', [['E','Evet'],['H','Hayır']], [f.feeGot || '']) + F.num('igota', 'Alınan tutar', amt(f.feeGotAmount)) + '</div>' +
     '<div class="row"><div>' + F.date('ilast', 'Son işlem', f.lastAction) + '</div><div>' + F.sel('iown', 'Sorumlu', [['','Atanmamış']].concat(D.owners), f.owner || '') + '</div></div>' +
     F.text('inext', 'Sonraki adım', f.nextStep || '') + F.date('inextd', 'Sonraki adım tarihi', f.nextDate) + '</div>' +
@@ -923,7 +935,7 @@ function icraForm(id){
   s.querySelector('#istage').onchange = sync; s.querySelector('#isite').onchange = sync; sync();
   s.querySelector('#iok').onclick = async () => {
     const r = await save('icra/save', {id: id || '', site: V('isite'), client: V('icli'), role: V('irole'), office: V('ioff'), no: V('ino'), type: V('itype'), creditor: V('icred'), debtor: V('idebt'), debtorPhone: V('iphone'), block: V('iblk'), flat: V('iflt'), occupant: V('iocc'),
-      start: V('istart'), amount: V('iamt'), fee: V('ifee'), stage: V('istage'), objServed: V('iobjd'), court: V('icourt'), feeAsked: CH('iasked')[0] || '', feeGot: CH('igot')[0] || '', feeGotAmount: V('igota'),
+      start: V('istart'), amount: V('iamt'), fee: V('ifee'), stage: V('istage'), objServed: V('iobjd'), objDate: V('iobjt'), served: V('isrv'), court: V('icourt'), feeAsked: CH('iasked')[0] || '', feeGot: CH('igot')[0] || '', feeGotAmount: V('igota'),
       lastAction: V('ilast'), owner: V('iown'), nextStep: V('inext'), nextDate: V('inextd'), fcNote: V('ifc'), officeNote: V('iof'), claimDesc: V('icl')});
     if (r && id) { if (sheetStack.length) { sheetStack.pop().remove(); } icraView(id); }
   };

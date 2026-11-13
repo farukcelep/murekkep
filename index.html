@@ -281,7 +281,7 @@ function applyLocal(op, b){
     else if (op === 'icra/tahsilat/transfer') { for (const f of D.icra) { const t = f.tah.find(x => x.id === b.id); if (t) { if (t.kind === 'Asıl alacak') { if (!t.transferred && b.date) D.emanet -= t.cents; else if (t.transferred && !b.date) D.emanet += t.cents; } t.transferred = b.date || ''; if (b.date) f.alarms = f.alarms.filter(a => a.kind !== 'emanet'); } } }
     else if (op === 'icra/haciz') { const f = D.icra.find(x => x.id === b.fileId); if (f && !f.haciz.some(h => h.id === b.newId)) f.haciz.push({id: b.newId, type: b.type, date: b.date || '', note: b.note || ''}); }
     else if (op === 'icra/flow') { const f = D.icra.find(x => x.id === b.id); if (f) { (f.islem = f.islem || []).unshift({id: 'l' + Date.now(), date: D.today, type: b.action === 'not' ? 'Bilgi / not' : 'Aşama', desc: (b.label || '') + (b.date ? ' (' + fd(b.date) + ')' : '') + (b.note ? ' – ' + b.note : ''), by: 'Faruk (telefon)', job: ''}); f.flowPending = true; f.last = f.lastAction = D.today; } }
-    else if (op === 'icra/islem') { const f = D.icra.find(x => x.id === b.fileId); if (f && !(f.islem || []).some(x => x.id === b.newId)) { (f.islem = f.islem || []).unshift({id: b.newId, date: b.date || D.today, type: b.type, desc: b.desc, by: 'Faruk (telefon)', job: b.asJob ? 'yeni' : ''}); if (b.asJob) (f.fjobs = f.fjobs || []).push({id: 'l' + Date.now(), date: b.due, title: b.type + ': ' + b.desc.split('\n')[0], who: b.who || 'Mücahid', kind: b.kind || 'Normal'}); } }
+    else if (op === 'icra/islem') { const f = D.icra.find(x => x.id === b.fileId); if (f && !(f.islem || []).some(x => x.id === b.newId)) { (f.islem = f.islem || []).unshift({id: b.newId, date: b.date || D.today, type: b.type, desc: b.desc, by: 'Faruk (telefon)', job: b.asJob ? 'yeni' : ''}); if (b.asJob) (f.fjobs = f.fjobs || []).push({id: 'l' + Date.now(), date: b.due, title: b.type + ': ' + b.desc.split('\n')[0], who: b.who || 'Mücahit', kind: b.kind || 'Normal'}); } }
     else if (op === 'icra/islem/delete') { for (const f of D.icra) f.islem = (f.islem || []).filter(x => x.id !== b.id); }
     else if (op === 'icra/haciz/delete') { for (const f of D.icra) f.haciz = f.haciz.filter(x => x.id !== b.id); }
     else if (op === 'icra/delete') D.icra = D.icra.filter(x => x.id !== b.id);
@@ -443,7 +443,7 @@ function pdfRows(l, withKind){
 }
 function datSuf(w){ const v = (w.toLocaleLowerCase('tr').match(/[aeıioöuü]/g) || ['a']).pop(); return 'aıou'.includes(v) ? 'a' : 'e'; }
 function pdfPick(kind){
-  const who = ['Faruk','Mücahid'];
+  const who = ['Faruk','Mücahit'];
   const s = openSheet('PDF – kimin işleri?', '<div class="card"><button class="btn" id="pw0">Tüm işler</button>' + who.map((w, i) => '<button class="btn sec" id="pw' + (i + 1) + '">Yalnız ' + w + '\'' + datSuf(w) + ' atananlar</button>').join('') + '</div>');
   s.querySelector('#pw0').onclick = () => { closeSheet(); pdfList(kind, ''); };
   who.forEach((w, i) => s.querySelector('#pw' + (i + 1)).onclick = () => { closeSheet(); pdfList(kind, w); });
@@ -650,7 +650,7 @@ function doneForm(j){
   else h += F.sel('dreason', 'Sebep', D.doneReasons, 'İşlem yapıldı');
   h += F.area('dnote', ev ? (med ? 'Toplantı notu – ne konuşuldu, teklif, sonraki adım (zorunlu)' : 'Duruşma notu – ne oldu, ara karar, sonraki tarih (zorunlu)') : 'Not', '');
   h += '<label class="f"><input type="checkbox" id="dexh" onchange="document.querySelector(\'.sheet.show #dexw\').classList.toggle(\'hide\', !this.checked)"> Ek yapılacak husus / yeni iş var</label><div id="dexw" class="hide">' +
-    F.area('dext', 'Her satır ayrı iş – "2 hafta", "10.11.2026", "cuma", "acil", "Mücahid" yazarsanız son gün / bölüm / sorumlu belirlenir', '') + '</div>';
+    F.area('dext', 'Her satır ayrı iş – "2 hafta", "10.11.2026", "cuma", "acil", "Mücahit" yazarsanız son gün / bölüm / sorumlu belirlenir', '') + '</div>';
   if (ev) h += F.file('dmin', med ? 'Arabulucu son tutanağı' : 'Duruşma tutanağı') + '<div class="mu" style="margin-top:6px">Tutanak eklenmezse kayıt "tutanak eksik" olarak kırmızı kalır. ' + (med ? 'Tutanak eklenince ana iş (dava, icra, talimat…) ekranı açılır.' : 'Eklenen tutanağı bilgisayar okur, süreli ara kararları iş olarak ekler.') + '</div>';
   h += '</div><button class="btn gr" id="dok">Kaydet</button>';
   const s = openSheet(ev ? 'Sonuç Gir' : 'Yapıldı', h);
@@ -694,7 +694,7 @@ function noteJobs(j, txt){
     if (!due && low.includes('yarın')) { due = new Date(today()); due.setDate(due.getDate() + 1); }
     if (!due) for (let i = 0; i < 7; i++) if (new RegExp('(^|\\s)' + WDN[i] + '(\\s|$|[,.:\'’])').test(low)) { due = new Date(today()); do { due.setDate(due.getDate() + 1); } while (due.getDay() !== i); break; }
     const acil = /acil|hemen|ivedi/.test(low);
-    const who = /mücahi[dt]/.test(low) ? 'Mücahid' : /faruk/.test(low) ? 'Faruk' : (j.assignee || 'Faruk');
+    const who = /mücahi[dt]/.test(low) ? 'Mücahit' : /faruk/.test(low) ? 'Faruk' : (j.assignee || 'Faruk');
     let d = due ? iso(due) : ''; if (acil && !d) { const x = new Date(today()); x.setDate(x.getDate() + 1); d = iso(x); }
     out.push({kind: acil ? 'ONCELIKLI' : due ? 'SURELI' : 'NORMAL', date: d, title: base, who: who, detail: t + '  (← ' + j.title + (ev ? ' ' + fd(j.date) : '') + ')'});
   });
@@ -804,6 +804,12 @@ function icraView(id){
     (f.fee ? '<span>Vekalet ücreti</span><div>' + money(f.fee) + '</div>' : '') + '<span>Son işlem</span><div>' + fd(f.last) + '</div>' + (f.nextStep ? '<span>Sonraki adım</span><b>' + esc(f.nextStep) + (f.nextDate ? ' – ' + fd(f.nextDate) : '') + '</b>' : '') +
     (f.objDate ? '<span>İtiraz tarihi</span><div>' + fd(f.objDate) + '</div>' : '') + (f.objServed ? '<span>İtirazın tebliği</span><div>' + fd(f.objServed) + '</div>' : '') + (f.sureText ? '<span>Süreler</span><div>' + esc(f.sureText).replace(/ {5}/g, '<br>') + '</div>' : '') + (f.owner ? '<span>Sorumlu</span><div>' + esc(f.owner) + '</div>' : '') + '</div>' +
     (f.alarms.length ? '<div style="margin-top:8px">' + f.alarms.map(a => '<div class="' + (a.sev === 'r' ? 'rt' : 'ot') + '">● ' + esc(a.text) + '</div>').join('') + '</div>' : '') + '</div>';
+  { const m2 = c => ((c || 0) / 100).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' TL', H = f.hesap, rw = (k, v, n, b) => '<tr' + (b ? ' style="background:#F6F0F0"' : '') + '><td style="padding:6px 8px;border-bottom:1px solid #EFEDE9;' + (b ? 'font-weight:700' : '') + '">' + k + (n ? '<div class="mu" style="font-size:11px">' + n + '</div>' : '') + '</td><td style="padding:6px 8px;border-bottom:1px solid #EFEDE9;text-align:right;white-space:nowrap;' + (b ? 'font-weight:700;color:#6B1E2E' : '') + '">' + v + '</td></tr>';
+    let t = '';
+    if (H) { const top = H.kes + H.faiz + H.vek + H.masraf + H.harc;
+      t = rw('Takipte Kesinleşen Miktar', m2(H.kes)) + rw('İcrada İşleyen Faiz', m2(H.faiz)) + rw('Masraf Toplamı', m2(H.masraf)) + rw('Tahsil Harcı', m2(H.harc)) + rw('Vekalet Ücreti', m2(H.vek)) + rw('Toplam Alacak', m2(top), '', 1) + rw('Yatan Para', m2(H.yatan)) + rw('Bakiye Borç', m2(top - H.yatan), '', 1); }
+    else t = rw('Takipte Kesinleşen Miktar', f.amount ? m2(f.amount) : '—', 'takip talebindeki toplam') + rw('İcrada İşleyen Faiz', '—', 'UYAP hesabı girilmedi') + rw('Masraf Toplamı', '—') + rw('Tahsil Harcı', m2(f.harcT || 0), 'tahmini ' + esc(f.harcAd || '')) + rw('Vekalet Ücreti', m2(f.vekT || 0), 'tahmini – AAÜT 2026-2027') + rw('Toplam (faiz + masraf hariç)', m2((f.amount || 0) + (f.harcT || 0) + (f.vekT || 0)), '', 1);
+    h += '<div class="card"><div class="tp"><b style="color:#6B1E2E">DOSYA HESABI</b><span class="dt">' + (H ? esc(H.source) + ' · ' + fd(H.date) : 'tahmini') + '</span></div><table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:14px">' + t + '</table></div>'; }
   if (f.stage !== 'Kapandı') {
     const fj = (f.fjobs || []).slice().sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
     if ((f.debtors || []).length > 1) h += '<div class="card"><div class="mu">Borçlular (' + f.debtors.length + ') – süreçler ayrı</div>' + f.debtors.map(d => '<div style="margin-top:8px"><b>' + esc(d.name) + '</b> <span class="mu">· ' + esc(d.stage || '') + '</span><br><span style="color:#6B1E2E">' + esc(d.flowTitle || '') + '</span>' +
@@ -880,6 +886,7 @@ function flowForm(id, debId){
     if (a === 'tah') { closeSheet(); icraCloseForm(id); return; }
     if (x[2] && !V('fld')) { err.textContent = x[2] + ' girin'; return; }
     if (a === 'not' && !V('fln')) { err.textContent = 'Not yazın'; return; }
+    if (['dava_yok','tah_yok','tah_yok_ala'].includes(a) && !V('fln')) { err.textContent = 'Dava açılmama sebebini Not alanına yazın'; return; }
     if (a === 'hac_ok' && !CH('flh').length) { err.textContent = 'En az bir haciz türü seçin'; return; }
     if (a === 'ony_ok' && !CH('flo').length) { err.textContent = 'Onaylanan yolu seçin'; return; }
     if (a === 'gor_prot' && !(+V('flt') >= 1)) { err.textContent = 'Taksit sayısını girin'; return; }
@@ -892,7 +899,7 @@ function islemForm(fid){
   const f = D.icra.find(x => x.id === fid);
   const s = openSheet('İşlem / Bilgi', '<div class="card"><div class="mu">' + esc(f.office + ' ' + f.no + ' · ' + f.debtor) + '</div>' + F.sel('ist', 'İşlem türü', D.islemTypes || ['Bilgi / not'], 'Bilgi / not') + F.date('isd', 'Tarih', D.today) + F.area('isx', 'Açıklama', '') +
     '<label class="f"><input type="checkbox" id="isj" onchange="document.querySelector(\'.sheet.show #isjw\').classList.toggle(\'hide\', !this.checked)"> Yapılacak iş olarak da ekle</label><div id="isjw" class="hide">' +
-    '<div class="row"><div>' + F.date('isdue', 'Son gün', '') + '</div><div>' + F.sel('isw', 'Kime', D.owners, f.owner || 'Mücahid') + '</div></div>' + F.sel('isk', 'İş türü', ['Normal','Öncelikli','Süreli'], 'Normal') + '</div></div><button class="btn" id="isok">Kaydet</button>');
+    '<div class="row"><div>' + F.date('isdue', 'Son gün', '') + '</div><div>' + F.sel('isw', 'Kime', D.owners, f.owner || 'Mücahit') + '</div></div>' + F.sel('isk', 'İş türü', ['Normal','Öncelikli','Süreli'], 'Normal') + '</div></div><button class="btn" id="isok">Kaydet</button>');
   s.querySelector('#isok').onclick = async () => { const aj = s.querySelector('#isj').checked;
     try { await send('icra/islem', {fileId: fid, type: V('ist'), date: V('isd'), desc: V('isx'), asJob: aj, due: aj ? V('isdue') : '', who: V('isw'), kind: V('isk')}); toast('Kaydedildi · bilgisayara iletiliyor'); closeSheet(); refreshSheet(() => icraView(fid)); }
     catch(e){ s.querySelector('.err').textContent = e.message; } };

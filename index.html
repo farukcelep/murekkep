@@ -165,7 +165,8 @@ async function graph(path, opt){
   if (r.status === 401) { LS.del('mk_at'); LS.del('mk_exp'); }
   return r;
 }
-async function readFile(rel){
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function readFile1(rel){
   let r;
   try { r = await graph('/me/drive/root:/' + encPath(rel) + ':/content'); if (r.ok) return await r.text(); if (r.status === 404) return null; }
   catch(e){ if (e.message === 'Giriş gerekli') throw e; }
@@ -176,6 +177,15 @@ async function readFile(rel){
   const r2 = await fetch(url);
   if (!r2.ok) throw new Error('OneDrive dosyası indirilemedi');
   return await r2.text();
+}
+/* OneDrive eşitlemesi sırasında (dosya yeniden yazılırken) okuma geçici olarak başarısız olabilir: 3 kez dene */
+async function readFile(rel, json){
+  let last;
+  for (let i = 0; i < 3; i++) {
+    try { const t = await readFile1(rel); if (t != null && json) JSON.parse(t); return t; }
+    catch(e){ if (e.message === 'Giriş gerekli') throw e; last = e; await sleep(1500 * (i + 1)); }
+  }
+  throw last;
 }
 async function findPath(){
   const cands = [PATH, 'Desktop/KASA/TELEFON', 'Masaüstü/KASA/TELEFON', 'Desktop/MÜREKKEP SERVER/TELEFON', 'Masaüstü/MÜREKKEP SERVER/TELEFON', 'KASA/TELEFON'].filter(Boolean);
@@ -190,7 +200,7 @@ async function load(silent){
   if (syncing) return; syncing = true;
   try {
     if (!PATH || !D) { const p = await findPath(); if (!p) throw new Error('OneDrive\'da MÜREKKEP verisi bulunamadı. Bilgisayarda programı bir kez açın (TELEFON klasörü oluşur) ve OneDrive eşitlemesini bekleyin; ya da Ayarlar\'dan klasör yolunu girin.'); PATH = p; LS.set('mk_path', p); }
-    let txt = await readFile(PATH + '/veri.json');
+    let txt = await readFile(PATH + '/veri.json', true);
     if (!txt) { const old = PATH; PATH = ''; const p = await findPath(); if (p) { PATH = p; LS.set('mk_path', p); txt = await readFile(PATH + '/veri.json'); } else PATH = old; }
     if (!txt) throw new Error('veri.json bulunamadı: ' + PATH);
     const fresh = JSON.parse(txt);
@@ -207,7 +217,7 @@ async function load(silent){
     if (e.message === 'Giriş gerekli') return;
     if (!D) { const c = LS.get('mk_cache'); if (c) { D = JSON.parse(c); for (const q of Q) if (!q.done) applyLocal(q.op, q.body); render(); toast('Çevrimdışı: son kayıtlı veri gösteriliyor'); } }
     if (!D) $('#app').innerHTML = '<div class="login"><h1>Bağlanılamadı</h1><p class="mu">' + esc(e.message) + '</p><button class="btn" onclick="load()">Tekrar Dene</button><button class="btn sec" onclick="setupView()">Ayarlar</button></div>';
-    else toast(e.message);
+    else if (!silent) toast(e.message + ' – birazdan tekrar denenecek');
   } finally { syncing = false; }
 }
 async function flush(){
@@ -391,6 +401,7 @@ function icraCard(f, extra){
     (f.nextStep ? '<div>→ ' + esc(f.nextStep) + (f.nextDate ? ' <b>' + fd(f.nextDate) + '</b>' : '') + '</div>' : '') + (extra || '') +
     (f.alarms.length ? '<div>' + f.alarms.slice(0, 2).map(a => '<div class="' + (a.sev === 'r' ? 'rt' : 'ot') + '">● ' + esc(a.text) + '</div>').join('') + '</div>' : '') + '</div>';
 }
+const icT = j => !!j.icraId && j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK' && !(j.title || '').startsWith('Serbest meslek makbuzu kes');
 function calItems(from, to){
   const out = [];
   for (const j of D.jobs) { if (j.done || !j.date) continue; const n = days(j.date); if (n < from || n > to) continue;
@@ -402,7 +413,7 @@ function calItems(from, to){
 
 /* ---------- ana sayfa */
 function vHome(){
-  const open = D.jobs.filter(j => !j.done && j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK');
+  const open = D.jobs.filter(j => !j.done && j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK' && !icT(j));
   const due = open.filter(j => has(j,'SURELI')), late = due.filter(j => j.date && days(j.date) < 0);
   const ev7 = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) >= 0 && days(j.date) <= 7);
   const icOpen = D.icra.filter(f => f.stage !== 'Kapandı');
@@ -432,7 +443,7 @@ function vHome(){
 }
 
 /* ---------- yazdırılabilir listeler (PDF) */
-function next7Jobs(){ return D.jobs.filter(j => !j.done && j.date && ((j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') ? days(j.date) >= 0 && days(j.date) <= 7 : has(j,'SURELI') && days(j.date) <= 7)).sort((a, b) => ((a.date || '') + (a.time || '')).localeCompare((b.date || '') + (b.time || ''))); }
+function next7Jobs(){ return D.jobs.filter(j => !j.done && j.date && ((j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') ? days(j.date) >= 0 && days(j.date) <= 7 : has(j,'SURELI') && !icT(j) && days(j.date) <= 7)).sort((a, b) => ((a.date || '') + (a.time || '')).localeCompare((b.date || '') + (b.time || ''))); }
 function pdfRows(l, withKind){
   if (!l.length) return '<p class="mu">Kayıt yok.</p>';
   return l.map((j, i) => {
@@ -461,7 +472,7 @@ function pdfList(kind, who){
     document.body.appendChild(pv); return;
   }
   const wf = j => !who || (j.assignee || 'Faruk') === who;
-  const open = D.jobs.filter(j => !j.done && j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK' && wf(j));
+  const open = D.jobs.filter(j => !j.done && j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK' && !icT(j) && wf(j));
   const byD = (a, b) => ((a.date || '9999') + (a.time || '')).localeCompare((b.date || '9999') + (b.time || ''));
   const ev = D.jobs.filter(j => !j.done && (j.kind === 'TAKVIM' || j.kind === 'ARABULUCULUK') && j.date && days(j.date) >= 0 && wf(j)).sort(byD);
   let t = '', b = '';
@@ -487,10 +498,10 @@ function pdfList(kind, who){
 
 /* ---------- işler */
 function vJobs(){
-  const segs = [['all','Tümü'],['ONCELIKLI','Acil'],['SURELI','Süreli'],['NORMAL','Normal'],['TAKIP','Takip'],['done','Yapılan']];
+  const segs = [['all','Tümü'],['ONCELIKLI','Acil'],['SURELI','Süreli'],['NORMAL','Normal'],['TAKIP','Takip'],['ICRA','İcra İşleri'],['done','Yapılan']];
   let h = searchBox('jobs', 'Ara: müvekkil, dosya, açıklama…') + '<div class="seg">' + segs.map(s => '<button class="' + (st.jobSeg === s[0] ? 'on' : '') + '" onclick="st.jobSeg=\'' + s[0] + '\';render()">' + s[1] + '</button>').join('') + '</div>';
   let l = D.jobs.filter(j => j.kind !== 'TAKVIM' && j.kind !== 'ARABULUCULUK');
-  l = st.jobSeg === 'done' ? l.filter(j => j.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || '')) : l.filter(j => !j.done && (st.jobSeg === 'all' || has(j, st.jobSeg)));
+  l = st.jobSeg === 'done' ? l.filter(j => j.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || '')) : l.filter(j => !j.done && (st.jobSeg === 'ICRA' ? icT(j) : !icT(j) && (st.jobSeg === 'all' || has(j, st.jobSeg))));
   l = l.filter(j => match(st.q.jobs, j.title + ' ' + j.file + ' ' + j.detail));
   if (st.jobSeg !== 'done') { const ord = j => has(j,'ONCELIKLI') ? 0 : has(j,'SURELI') ? 1 : 2; l.sort((a, b) => ord(a) - ord(b) || (a.date || '9999').localeCompare(b.date || '9999')); }
   h += '<div class="mu" style="margin:2px 4px">' + l.length + ' kayıt</div>' + (st.jobSeg === 'done' ? l.slice(0, 80) : l).map(jobCard).join('') + (l.length ? '' : '<div class="empty">Kayıt yok.</div>');
@@ -1021,6 +1032,13 @@ function entryForm(id, type){
 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && D) load(true); });
 setInterval(() => { if (!document.hidden && D) load(true); }, 60000);
+/* Ana ekrana eklenmiş uygulama eski sürümü önbellekten açarsa yeni sürümü kendisi yükler */
+const APP_VER = '58';
+(async () => { try {
+  const t = await (await fetch(location.pathname + '?ts=' + Date.now(), {cache: 'no-store'})).text();
+  const m = t.match(/const APP_VER = '(\d+)'/);
+  if (m && m[1] !== APP_VER && !/[?&]code=/.test(location.search) && LS.get('mk_verjump') !== m[1]) { LS.set('mk_verjump', m[1]); location.replace(location.pathname + '?v=' + m[1]); }
+} catch(e){} })();
 start();
 </script>
 </body>
